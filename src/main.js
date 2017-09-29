@@ -4,6 +4,7 @@ import Vue from 'vue'
 import FastClick from 'fastclick'
 import VueRouter from 'vue-router'
 import router from './router'
+import store from './store'
 import App from './App'
 import { AjaxPlugin, md5, WechatPlugin } from 'vux'
 // 时间戳
@@ -25,5 +26,6 @@ Vue.http.defaults.headers.post['appverify'] = 'md5=' + md5(md5String) + ';ts=' +
 /* eslint-disable no-new */
 new Vue({
   router,
+  store,
   render: h => h(App)
 }).$mount('#app-box')

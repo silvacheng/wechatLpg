@@ -101,13 +101,12 @@
           return
         }
         this.setSelectGoods(this.selectGoods)
-        // console.log(this.$router.history.current.name)
-        if (this.$router.history.current.name === 'Shop') {
+        if (this.$router.history.current.fullPath === '/lpgshop') {
           // 当前路由在店铺时  跳转到确认订单
-          this.$router.push('/ConfirmOrder')
+          this.$router.push('/confirmOrder')
         } else {
           alert(`交了${this.totalPrice}元`)
-          this.$router.push('/OrderCenter')
+          this.$router.push('/orderCenter')
         }
       },
       addGood (target) {

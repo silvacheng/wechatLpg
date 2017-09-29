@@ -16,6 +16,30 @@ export default new Router({
       component: function (resolve) {
         require(['../components/lpgshop/lpgshop.vue'], resolve)
       }
+    },
+    {
+      path: '/confirmOrder',
+      component: function (resolve) {
+        require(['../components/confirm-order/confirm-order.vue'], resolve)
+      }
+    },
+    {
+      path: '/orderCenter',
+      component: function (resolve) {
+        require(['../components/order-center/order-center.vue'], resolve)
+      }
+    },
+    {
+      path: '/addressManage',
+      component: function (resolve) {
+        require(['../components/address-manage/address-manage.vue'], resolve)
+      }
+    },
+    {
+      path: '/addressEdit',
+      component: function (resolve) {
+        require(['../components/address-edit/address-edit.vue'], resolve)
+      }
     }
   ]
 })
