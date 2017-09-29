@@ -52,7 +52,7 @@
   const setDefaultAddressUrl = '/zrds/ZRapp/updateBuyerDeliveryToLpgDefault'
   const deleteAddressUrl = '/zrds/ZRapp/deleteAddress'
   const ERR_OK = 1
-  import Vue from 'vue'
+//  import Vue from 'vue'
   import { XButton, cookie } from 'vux'
   import { parseParam } from '../../api/config'
 
@@ -82,7 +82,7 @@
         let data = {
           userId: cookie.get('userId')
         }
-        Vue.http.defaults.headers.post['x-mas-app-info'] = this.localSid
+//        Vue.http.defaults.headers.post['x-mas-app-info'] = this.localSid
         this.$http.post(getAddressListUrl, parseParam(data)).then((res) => {
           if (res.data.status === ERR_OK) {
             this.addressList = res.data.data

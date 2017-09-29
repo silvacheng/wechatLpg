@@ -63,24 +63,24 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="address-edit.vue" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/components/address-edit/address-edit.vue">
+      <file leaf-file-name="address-manage.vue" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/components/address-manage/address-manage.vue">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="283">
-              <caret line="124" column="25" lean-forward="true" selection-start-line="124" selection-start-column="25" selection-end-line="124" selection-end-column="25" />
+            <state relative-caret-position="288">
+              <caret line="57" column="0" lean-forward="true" selection-start-line="57" selection-start-column="0" selection-end-line="57" selection-end-column="0" />
               <folding>
-                <element signature="e#2844#2918#0" expanded="false" />
-                <element signature="e#3083#3170#0" expanded="false" />
+                <element signature="n#li#0;n#ul#0;n#div#1;n#div#0;n#template#0;n#!!top" expanded="false" />
+                <element signature="e#1894#1931#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="order-center.vue" pinned="false" current-in-tab="true">
+      <file leaf-file-name="order-center.vue" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/components/order-center/order-center.vue">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="243">
-              <caret line="81" column="25" lean-forward="true" selection-start-line="81" selection-start-column="25" selection-end-line="81" selection-end-column="25" />
+            <state relative-caret-position="324">
+              <caret line="84" column="23" lean-forward="true" selection-start-line="84" selection-start-column="23" selection-end-line="84" selection-end-column="23" />
               <folding />
             </state>
           </provider>
@@ -101,6 +101,7 @@
       <find>userId</find>
       <find>addAddress</find>
       <find>onShadowChange</find>
+      <find>Vue</find>
     </findStrings>
   </component>
   <component name="IdeDocumentHistory">
@@ -120,12 +121,12 @@
         <option value="$PROJECT_DIR$/src/store/actions.js" />
         <option value="$PROJECT_DIR$/src/components/shopcart/shopcart.vue" />
         <option value="$PROJECT_DIR$/src/router/index.js" />
-        <option value="$PROJECT_DIR$/src/components/address-manage/address-manage.vue" />
         <option value="$PROJECT_DIR$/src/App.vue" />
         <option value="$PROJECT_DIR$/src/components/confirm-order/confirm-order.vue" />
         <option value="$PROJECT_DIR$/src/components/add-address/add-address.vue" />
         <option value="$PROJECT_DIR$/src/components/address-edit/address-edit.vue" />
         <option value="$PROJECT_DIR$/src/components/order-center/order-center.vue" />
+        <option value="$PROJECT_DIR$/src/components/address-manage/address-manage.vue" />
       </list>
     </option>
   </component>
@@ -269,12 +270,12 @@
       <option name="presentableId" value="Default" />
       <updated>1506581850996</updated>
       <workItem from="1506581933092" duration="8820000" />
-      <workItem from="1506646550533" duration="15613000" />
+      <workItem from="1506646550533" duration="15925000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="24433000" />
+    <option name="totallyTimeSpent" value="24745000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1600" height="860" extended-state="0" />
@@ -460,17 +461,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/components/address-manage/address-manage.vue">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="234">
-          <caret line="92" column="41" lean-forward="true" selection-start-line="92" selection-start-column="41" selection-end-line="92" selection-end-column="41" />
-          <folding>
-            <element signature="n#li#0;n#ul#0;n#div#1;n#div#0;n#template#0;n#!!top" expanded="false" />
-            <element signature="e#1868#1889#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/components/shopcart/shopcart.vue">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="216">
@@ -517,6 +507,14 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/components/order-center/order-center.vue">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="324">
+          <caret line="84" column="23" lean-forward="true" selection-start-line="84" selection-start-column="23" selection-end-line="84" selection-end-column="23" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/components/address-edit/address-edit.vue">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="283">
@@ -528,11 +526,14 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/components/order-center/order-center.vue">
+    <entry file="file://$PROJECT_DIR$/src/components/address-manage/address-manage.vue">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="243">
-          <caret line="81" column="25" lean-forward="true" selection-start-line="81" selection-start-column="25" selection-end-line="81" selection-end-column="25" />
-          <folding />
+        <state relative-caret-position="288">
+          <caret line="57" column="0" lean-forward="true" selection-start-line="57" selection-start-column="0" selection-end-line="57" selection-end-column="0" />
+          <folding>
+            <element signature="n#li#0;n#ul#0;n#div#1;n#div#0;n#template#0;n#!!top" expanded="false" />
+            <element signature="e#1894#1931#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
