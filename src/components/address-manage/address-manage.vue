@@ -90,7 +90,7 @@
         })
       },
       addAddress () {
-        this.$router.push('/addressEdit')
+        this.$router.push('/addAddress')
       },
       setDefault (item) { // 设置默认地址
         let data = {

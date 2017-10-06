@@ -40,6 +40,12 @@ export default new Router({
       component: function (resolve) {
         require(['../components/address-edit/address-edit.vue'], resolve)
       }
+    },
+    {
+      path: '/addAddress',
+      component: function (resolve) {
+        require(['../components/add-address/add-address.vue'], resolve)
+      }
     }
   ]
 })
