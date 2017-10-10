@@ -113,6 +113,9 @@
         this.$emit('add', target)
       },
       toggleList () {
+        if (this.$router.history.current.path === '/confirmOrder') { // 确认订单页面不展示弹出层
+          return
+        }
         if (!this.totalCount) {
           return
         } else {
