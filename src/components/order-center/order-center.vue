@@ -61,7 +61,7 @@
   export default {
     methods: {
       back () {
-        this.$router.back()
+        this.$router.push('/lpgshop')
       },
       onItemClick (index) {
         console.log('on item click:', index)

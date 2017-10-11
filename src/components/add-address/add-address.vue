@@ -32,12 +32,12 @@
     data () {
       return {
         addressData: ChinaAddressV3Data,
-        phone: '',
+        phone: '15646786654',
         addressId: '',
         selectedAddress: '',
         selectedAddressArr: [],
-        detailAddress: '',
-        floor: '',
+        detailAddress: '人民路2号',
+        floor: '8',
         elevator: false,
         isSetAsDefaultAddress: true,
         companyList: ['佛山市华来燃气有限公司', '佛山市中国燃气有限公司'],

@@ -42,11 +42,11 @@
         <div class="shop-name">XXX店铺</div>
         <div class="good-list" ref="goodWrapper">
           <ul>
-            <li class="good" v-for="good in selectGoods" v-show="selectGoods.length>0">
+            <li class="good" v-for="good in selectGoods"  v-show="good.count>0">
               <div class="good-name">{{good.gasTypeName}}</div>
               <div class="good-price">￥{{good.bottlePrice}}</div>
               <div class="cartcontrol-wrapper">
-                <cartcontrol :good="good" @add="addGood"></cartcontrol>
+                <span>x&nbsp;{{good.count}}</span>
               </div>
             </li>
           </ul>
@@ -61,7 +61,7 @@
   import { mapGetters } from 'vuex'
   import BScroll from 'better-scroll'
   import shopcart from '../shopcart/shopcart.vue'
-  import cartcontrol from '../../base/cartcontrol/cartcontrol.vue'
+//  import cartcontrol from '../../base/cartcontrol/cartcontrol.vue'
   export default {
     data () {
       return {
@@ -94,9 +94,9 @@
       })
     },
     methods: {
-      addGood (target) {
-        this.$emit('add', target)
-      },
+//      addGood (target) {
+//        this.$emit('add', target)
+//      },
       back () {
         this.$router.back()
       },
@@ -118,7 +118,7 @@
     },
     components: {
       shopcart,
-      cartcontrol,
+//      cartcontrol,
       Datetime,
       XInput
     }
@@ -208,8 +208,8 @@
           .cartcontrol-wrapper
             position absolute
             right 20px
-            top 5px
+            top 15px
             span
-              font-size 16px
+              font-size 14px
 
 </style>

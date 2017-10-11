@@ -1,5 +1,5 @@
 <template>
-  <div class="cartcontrol">
+  <div class="cartcontrol" :index="index">
     <transition name="move">
       <div class="cart-decrease" v-show="good.count>0" @click.stop.prevent="decreaseCart">
         <i class="iconfont">&#xe6e8;</i>
@@ -18,6 +18,9 @@
     props: {
       good: {
         type: Object
+      },
+      index: {
+        type: Number
       }
     },
     methods: {

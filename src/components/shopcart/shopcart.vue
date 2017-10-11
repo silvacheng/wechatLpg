@@ -24,13 +24,13 @@
           </div>
           <div class="list-content">
             <ul>
-              <li class="good" v-for="(good, index) in selectGoods">
+              <li class="good" v-for="(good, index) in selectGoods" v-show="good.count>0">
                 <span>{{good.gasTypeName}}</span>
                 <div class="price">
                   <span>￥{{good.bottlePrice}}</span>
                 </div>
                 <div class="cartcontrol-wrapper">
-                  <cartcontrol :good="good" @add="addGood"></cartcontrol>
+                  <cartcontrol :good="good" @add="addGood" :index="index"></cartcontrol>
                 </div>
               </li>
             </ul>
@@ -76,7 +76,11 @@
         if (this.totalPrice === 0) {
           return '请选择商品'
         } else {
-          return '结算'
+          if (this.$router.history.current.fullPath === '/lpgshop') {
+            return '结算'
+          } else {
+            return '提交'
+          }
         }
       },
       payClass () {
@@ -106,6 +110,7 @@
           this.$router.push('/confirmOrder')
         } else {
           alert(`交了${this.totalPrice}元`)
+          console.log(this.selectGoods)
           this.$router.push('/orderCenter')
         }
       },
@@ -113,7 +118,7 @@
         this.$emit('add', target)
       },
       toggleList () {
-        if (this.$router.history.current.path === '/confirmOrder') { // 确认订单页面不展示弹出层
+        if (this.$router.history.current.path === '/lpgshop') { // 确认订单页面不展示弹出层
           return
         }
         if (!this.totalCount) {

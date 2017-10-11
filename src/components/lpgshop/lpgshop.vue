@@ -18,7 +18,7 @@
         {{goodsTitle}}
       </div>
       <ul>
-        <li class="good" v-for="good in goods" v-show="goods.length>0">
+        <li class="good" v-for="good in goods">
           <div class="good-name">{{good.gasTypeName}}</div>
           <div class="good-price">￥{{good.bottlePrice}}</div>
           <div class="cartcontrol-wrapper">

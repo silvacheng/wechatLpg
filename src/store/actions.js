@@ -2,6 +2,9 @@
 import * as types from './mutation-types'
 
 export const selectGoods = function ({commit, state}, {list}) {
+  console.log(commit)
+  console.log(state)
+  console.log(list)
   commit(types.SET_SELECT_GOODS, list)
 }
 export const selectAddress = function ({commit, state}, {list}) {
