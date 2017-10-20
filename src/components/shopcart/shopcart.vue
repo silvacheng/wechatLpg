@@ -4,12 +4,12 @@
       <div class="content" @click="toggleList">
         <div class="content-left">
           <div class="logo-wrapper">
-            <div class="logo" :class="{'highlight':totalCount>0}">
-              <i class="iconfont" :class="{'highlight':totalCount>0}">&#xe606;</i>
+            <div class="logo" :class="{'highlight':totalamount>0}">
+              <i class="iconfont" :class="{'highlight':totalamount>0}">&#xe606;</i>
             </div>
-            <div class="number" v-show="totalCount>0">{{totalCount}}</div>
+            <div class="number" v-show="totalamount>0">{{totalamount}}</div>
           </div>
-          <div class="price" :class="{'highlight':totalCount>0}">￥{{totalPrice}}</div>
+          <div class="price" :class="{'highlight':totalamount>0}">￥{{totalPrice}}</div>
           <div class="desc">不包含送气费，楼层费</div>
         </div>
         <div class="content-right">
@@ -24,7 +24,7 @@
           </div>
           <div class="list-content">
             <ul>
-              <li class="good" v-for="(good, index) in selectGoods" v-show="good.count>0">
+              <li class="good" v-for="(good, index) in selectGoods" v-show="good.amount>0">
                 <span>{{good.gasTypeName}}</span>
                 <div class="price">
                   <span>￥{{good.bottlePrice}}</span>
@@ -41,36 +41,44 @@
     <transition name="fade">
       <div class="list-mark" v-show="listShow" @click="hideList"></div>
     </transition>
+    <Loading class="loading" :text="loadingText" :show="showLoading"></Loading>
   </div>
 </template>
 <script type="text/ECMAScript-6">
   import cartcontrol from '../../base/cartcontrol/cartcontrol.vue'
+  import { cookie, Loading } from 'vux'
   import { mapMutations } from 'vuex'
+  const postGasOrderUrl = 'lw/controller/forGas/postGasOrderMas.do'
   export default {
     props: {
       selectGoods: {
         type: Array
+      },
+      address: {
+        type: Object
       }
     },
     data () {
       return {
-        fold: true
+        fold: true,
+        showLoading: false,
+        loadingText: '提交订单中...'
       }
     },
     computed: {
       totalPrice () {
         let total = 0
         this.selectGoods.forEach((good) => {
-          total += Number(good.bottlePrice) * good.count
+          total += Number(good.bottlePrice) * good.amount
         })
         return total
       },
-      totalCount () {
-        let count = 0
+      totalamount () {
+        let amount = 0
         this.selectGoods.forEach((good) => {
-          count += good.count
+          amount += good.amount
         })
-        return count
+        return amount
       },
       payDesc () {
         if (this.totalPrice === 0) {
@@ -91,7 +99,7 @@
         }
       },
       listShow () {
-        if (!this.totalCount) {
+        if (!this.totalamount) {
           this.fold = true
           return false
         }
@@ -108,10 +116,45 @@
         if (this.$router.history.current.fullPath === '/lpgshop') {
           // 当前路由在店铺时  跳转到确认订单
           this.$router.push('/confirmOrder')
-        } else {
-          alert(`交了${this.totalPrice}元`)
-          console.log(this.selectGoods)
-          this.$router.push('/orderCenter')
+        } else { // 提交订单
+          let userInfo = this.address
+          let selectFoodStr = JSON.stringify(this.selectGoods)
+          let data = {
+            'userId': userInfo.appUserId,
+            'userCode': cookie.get('orderGasNo'), // 订气编号
+            'deliverCompanyId': userInfo.deliverCompanyId, // 公司id
+            'deliverDepartmentId': userInfo.deliverDepartmentId, // 门店id
+            'receivePerson': userInfo.receivePerson, // 收货人姓名
+            'receiveMobile': userInfo.receiveMobile, // 收货人手机
+            'deliverAddress': userInfo.userArea + userInfo.userAddress, // 送货地址
+            'elevator': userInfo.elevator,  // 是否有电梯 1:有 0：无
+            'floor': userInfo.floor, // 楼层
+            'payType': '1', // 支付方式  1：货到付款   2：在线支付
+            'deliveryType': '1', // 配送方式  1：送货上门    2：上门提货
+            'bookingTime': '2017-10-19 11:47', // 预约时间
+            'customerRemark': '1',
+            'gasCost': this.totalPrice * 100, // 燃气费
+            'waterCost': 0, // 水费（不含送水费、楼层费）
+            'auxiliaryMaterialCost': 0, // 辅料费
+            'deliverCost': 0, // 运费
+            'floorCost': 0, // 楼层费
+            'totalCost': this.totalPrice * 100, // 总费用
+            'lstGasStr': selectFoodStr, // 瓶装气商品列表
+            'lstWaterStr': '[]', // 桶装水商品列表
+            'lstAuxinliaryMaterialStr': '[]', // 辅料商品列表
+            'integralUse': 0, // 是否使用积分
+            'integralConsume': 0, // 抵扣积分
+            'integralMoney': 0 // 积分抵扣金额
+          }
+          console.log(data)
+          this.showLoading = true
+          this.$http.post(postGasOrderUrl, JSON.stringify(data)).then((res) => {
+            console.log(res.data)
+            this.showLoading = false
+            if (res.data.status === '1') {
+              this.$router.push('/orderCenter')
+            }
+          })
         }
       },
       addGood (target) {
@@ -121,7 +164,7 @@
         if (this.$router.history.current.path === '/lpgshop') { // 确认订单页面不展示弹出层
           return
         }
-        if (!this.totalCount) {
+        if (!this.totalamount) {
           return
         } else {
           this.fold = !this.fold
@@ -129,7 +172,7 @@
       },
       empty () {
         this.selectGoods.forEach((item) => {
-          item.count = 0
+          item.amount = 0
         })
       },
       hideList () {
@@ -140,7 +183,8 @@
       })
     },
     components: {
-      cartcontrol
+      cartcontrol,
+      Loading
     }
   }
 </script>
@@ -282,7 +326,7 @@
           line-height 40px
       .list-content
         padding 0 18px
-        max-height 217px
+        max-height 400px
         overflow hidden
         background #fff
         .good

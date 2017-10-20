@@ -34,6 +34,13 @@ module.exports = {
         pathRewrite: {
           '^/zrds/': ''
         }
+      },
+      '/lw': {	//正式环境跨域请求
+        target: 'http://10.10.17.157:8080/',
+        changeOrigin: true,
+        pathRewrite: {
+          '^/lw/': ''
+        }
       }
     },
     // CSS Sourcemaps off by default because relative paths are "buggy"

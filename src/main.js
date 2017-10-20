@@ -19,7 +19,7 @@ FastClick.attach(document.body)
 
 Vue.config.productionTip = false
 // 配置请求头 appcan平台
-Vue.http.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded;charset=utf-8'
+Vue.http.defaults.headers.post['Content-Type'] = 'application/json;charset=utf-8'
 Vue.http.defaults.headers.post['datatype'] = 'json'
 Vue.http.defaults.headers.post['x-mas-app-info'] = 'aaahg10001/public'
 Vue.http.defaults.headers.post['appverify'] = 'md5=' + md5(md5String) + ';ts=' + timeStamp

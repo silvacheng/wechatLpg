@@ -1,4 +1,4 @@
 // 获取状态   选择的商品
 export const selectGoods = state => state.selectGoods
-export const selectAddress = state => state.selectAddress
+export const defaultAddress = state => state.defaultAddress
 export const editAddress = state => state.editAddress

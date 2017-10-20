@@ -15,6 +15,5 @@ export default {
   @import "common/css/iconfont.css";
   #app{
     height:100%;
-    background-color: #f4f4f4;
   }
 </style>

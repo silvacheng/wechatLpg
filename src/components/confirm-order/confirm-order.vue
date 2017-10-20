@@ -8,11 +8,11 @@
       <div class="info" @click="selectAddress">
         <div class="phone">
           <span>联系电话:</span>
-          <span>{{address.phone}}</span>
+          <span>{{address.receiveMobile}}</span>
         </div>
         <div class="address">
           <span>收货地址:</span>
-          <span>{{address.address}}{{address.detailAddress}}</span>
+          <span>{{address.userArea}}{{address.userAddress}}</span>
         </div>
         <div class="arrow-right">
           <i class="iconfont enter">&#xe601;</i>
@@ -42,33 +42,33 @@
         <div class="shop-name">XXX店铺</div>
         <div class="good-list" ref="goodWrapper">
           <ul>
-            <li class="good" v-for="good in selectGoods"  v-show="good.count>0">
+            <li class="good" v-for="good in selectGoods"  v-show="good.amount>0">
               <div class="good-name">{{good.gasTypeName}}</div>
               <div class="good-price">￥{{good.bottlePrice}}</div>
               <div class="cartcontrol-wrapper">
-                <span>x&nbsp;{{good.count}}</span>
+                <span>x&nbsp;{{good.amount}}</span>
               </div>
             </li>
           </ul>
         </div>
       </div>
     </div>
-    <shopcart :selectGoods="selectGoods"></shopcart>
+    <shopcart :selectGoods="selectGoods" :address="address" ref="shopcart"></shopcart>
   </div>
 </template>
 <script type="text/ECMAScript-6">
   import { cookie, Datetime, XInput } from 'vux'
   import { mapGetters } from 'vuex'
-  import BScroll from 'better-scroll'
   import shopcart from '../shopcart/shopcart.vue'
-//  import cartcontrol from '../../base/cartcontrol/cartcontrol.vue'
+  const getDefaultAddressUrl = 'lw/controller/buyerDelivery/queryBuyerDeliveryOfLgpMas.do'
+
   export default {
     data () {
       return {
-        scrollY: 0,
         appointmentTime: '2017-9-29 14:59:23',
         minYear: 2017,
-        maxYear: 2099
+        maxYear: 2099,
+        defaultAddress: {}
       }
     },
     computed: {
@@ -77,6 +77,7 @@
       }),
       address () {
         let address = cookie.get('defaultAddress')
+        console.log(JSON.parse(address))
         if (address) {
           return JSON.parse(address)
         } else {
@@ -89,9 +90,7 @@
       }
     },
     created () {
-      setTimeout(() => {
-        this._initScroll()
-      })
+      this.getDefaultAddress()
     },
     methods: {
 //      addGood (target) {
@@ -100,25 +99,32 @@
       back () {
         this.$router.back()
       },
-      _initScroll () {
-        this.goodScroll = new BScroll(this.$refs.goodWrapper, {
-          click: true
-        })
-        this.goodScroll.on('scroll', (pos) => {
-          // 去四舍五入后的绝对值
-          this.scrollY = Math.abs(Math.round(pos.y))
-        })
-      },
+      // _initScroll () {
+      //   this.goodScroll = new BScroll(this.$refs.goodWrapper, {
+      //     click: true
+      //   })
+      //   this.goodScroll.on('scroll', (pos) => {
+      //     // 去四舍五入后的绝对值
+      //     this.scrollY = Math.abs(Math.round(pos.y))
+      //   })
+      // },
       selectAppointmentTime (val) {
         console.log('change', val)
       },
       selectAddress () {
         this.$router.push('/addressManage')
+      },
+      getDefaultAddress () {
+        let data = {
+          'userId': this.address.appUserId
+        }
+        this.$http.post(getDefaultAddressUrl, JSON.stringify(data)).then((res) => {
+          console.log(res)
+        })
       }
     },
     components: {
       shopcart,
-//      cartcontrol,
       Datetime,
       XInput
     }
@@ -126,14 +132,15 @@
 </script>
 <style scoped lang="stylus" rel="stylesheet/stylus">
   .confirm-order
-    height 100%
     background-color #f4f4f4
     .header
       height 40px
       line-height 40px
       position relative
       text-align center
-      background-color #fff
+      border-bottom 1px solid #dadada
+      background-color #38d164
+      color #fff
       .back
         position absolute
         left 0
@@ -181,6 +188,7 @@
             padding 10px 0
       .shop
         margin-top 20px
+        margin-bottom 48px
         .shop-name
           height 30px
           line-height 30px

@@ -1,11 +1,11 @@
 <template>
   <div class="cartcontrol" :index="index">
     <transition name="move">
-      <div class="cart-decrease" v-show="good.count>0" @click.stop.prevent="decreaseCart">
+      <div class="cart-decrease" v-show="good.amount>0" @click.stop.prevent="decreaseCart">
         <i class="iconfont">&#xe6e8;</i>
       </div>
     </transition>
-    <div class="cart-count" v-show="good.count>0">{{good.count}}</div>
+    <div class="cart-amount" v-show="good.amount>0">{{good.amount}}</div>
     <div class="cart-add" @click.stop.prevent="addCart">
       <i class="iconfont">&#xe615;</i>
     </div>
@@ -25,16 +25,16 @@
     },
     methods: {
       addCart (event) {
-        if (!this.good.count) {
-          Vue.set(this.good, 'count', 1)
+        if (!this.good.amount) {
+          Vue.set(this.good, 'amount', 1)
         } else {
-          this.good.count++
+          this.good.amount++
         }
         this.$emit('add', event.target)
       },
       decreaseCart (event) {
-        if (this.good.count > 0) {
-          this.good.count--
+        if (this.good.amount > 0) {
+          this.good.amount--
         }
       }
     }
@@ -63,7 +63,7 @@
         transform: translate3d(24px, 0, 0)
         .iconfont
           transform: rotate(180deg)
-    .cart-count
+    .cart-amount
       display inline-block
       width: 12px
       padding-top: 6px

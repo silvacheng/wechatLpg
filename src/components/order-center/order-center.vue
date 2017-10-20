@@ -9,38 +9,22 @@
         <tab-item selected @on-item-click="onItemClick">全部</tab-item>
         <tab-item @on-item-click="onItemClick">待收货</tab-item>
         <tab-item @on-item-click="onItemClick">待发货</tab-item>
+        <tab-item @on-item-click="onItemClick">已发货</tab-item>
       </tab>
 
       <div class="content">
         <ul>
-          <li class="order">
+          <li class="order" v-for="order in totalOrder" v-show="totalOrder.length>0">
             <div class="order-title">
               <span class="shop">华来门店</span>
               <span class="status">等待卖家发货</span>
             </div>
             <div class="good">
               <dl>
-                <dt></dt>
-                <dd></dd>
-              </dl>
-            </div>
-            <div class="info">
-              <div class="time">2017-09-02</div>
-              <div class="total">共1件商品 合计<span>￥32.00</span></div>
-            </div>
-            <div class="operate">
-              <span>删除订单</span>
-            </div>
-          </li>
-          <li class="order">
-            <div class="order-title">
-              <span class="shop">华来门店</span>
-              <span class="status">等待卖家发货</span>
-            </div>
-            <div class="good">
-              <dl>
-                <dt></dt>
-                <dd></dd>
+                <dt><img src="http://img.zrhsh.cn/phone/img/lpg/gas.jpg" width="70" height="70"></dt>
+                <dd>
+                  <span>{{order.totalCost}}</span>
+                </dd>
               </dl>
             </div>
             <div class="info">
@@ -57,8 +41,29 @@
   </div>
 </template>
 <script type="text/ECMAScript-6">
-  import { Tab, TabItem } from 'vux'
+  import { Tab, TabItem, cookie } from 'vux'
+  const postGasOrderUrl = 'lw/controller/forGas/getGasOrderListMas.do'
+  // const postGasOrderUrl = 'lw/controller/forGas/getGasListMas.do'
   export default {
+    data () {
+      return {
+        totalOrder: []
+      }
+    },
+    created () {
+      let userInfo = JSON.parse(cookie.get('defaultAddress'))
+      let orderGasNo = cookie.get('orderGasNo')
+      // console.log(userInfo)
+      let data = {
+        'userId': userInfo.appUserId,
+        'orderGasNo': orderGasNo
+      }
+      this.$http.post(postGasOrderUrl, JSON.stringify(data)).then((res) => {
+        if (res.data.status === '1') {
+          this.totalOrder = res.data.data
+        }
+      })
+    },
     methods: {
       back () {
         this.$router.push('/lpgshop')
