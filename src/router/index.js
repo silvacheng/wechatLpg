@@ -12,7 +12,7 @@ export default new Router({
       }
     },
     {
-      path: '/lpgshop',
+      path: '/lpgShop',
       component: function (resolve) {
         require(['../components/lpgshop/lpgshop.vue'], resolve)
       }
@@ -45,6 +45,12 @@ export default new Router({
       path: '/addAddress',
       component: function (resolve) {
         require(['../components/add-address/add-address.vue'], resolve)
+      }
+    },
+    {
+      path: '/orderDetail',
+      component: function (resolve) {
+        require(['../components/order-detail/order-detail.vue'], resolve)
       }
     }
   ]

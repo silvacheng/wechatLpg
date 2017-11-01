@@ -3,14 +3,8 @@
     <div class="shopcart">
       <div class="content" @click="toggleList">
         <div class="content-left">
-          <div class="logo-wrapper">
-            <div class="logo" :class="{'highlight':totalamount>0}">
-              <i class="iconfont" :class="{'highlight':totalamount>0}">&#xe606;</i>
-            </div>
-            <div class="number" v-show="totalamount>0">{{totalamount}}</div>
-          </div>
-          <div class="price" :class="{'highlight':totalamount>0}">￥{{totalPrice}}</div>
-          <div class="desc">不包含送气费，楼层费</div>
+          <div class="top">合计商品：<span class="red">{{totalamount}}件</span></div>
+          <div class="bottom">合计金额：<span class="red">￥{{totalPrice}}</span>&nbsp;&nbsp;<span class="remark">(不包含送气费，楼层费)</span></div>
         </div>
         <div class="content-right">
           <div class="pay" :class="payClass" @click.stop.prevent="pay">{{payDesc}}</div>
@@ -48,7 +42,7 @@
   import cartcontrol from '../../base/cartcontrol/cartcontrol.vue'
   import { cookie, Loading } from 'vux'
   import { mapMutations } from 'vuex'
-  const postGasOrderUrl = 'lw/controller/forGas/postGasOrderMas.do'
+  import { postGasOrderUrl } from '../../api/config'
   export default {
     props: {
       selectGoods: {
@@ -56,6 +50,12 @@
       },
       address: {
         type: Object
+      },
+      appointmentTime: {
+        type: String
+      },
+      remarkText: {
+        type: String
       }
     },
     data () {
@@ -113,27 +113,29 @@
           return
         }
         this.setSelectGoods(this.selectGoods)
-        if (this.$router.history.current.fullPath === '/lpgshop') {
+        let currentFullPath = this.$router.history.current.fullPath
+        if (currentFullPath === '/lpgShop' || currentFullPath === '/lpgshop') {
           // 当前路由在店铺时  跳转到确认订单
           this.$router.push('/confirmOrder')
         } else { // 提交订单
           let userInfo = this.address
           let selectFoodStr = JSON.stringify(this.selectGoods)
           let data = {
-            'userId': userInfo.appUserId,
+            'userId': cookie.get('appUserId'), // appUserId
             'userCode': cookie.get('orderGasNo'), // 订气编号
+            // 'orderGasNo': cookie.get('orderGasNo'), // 订气编号
             'deliverCompanyId': userInfo.deliverCompanyId, // 公司id
             'deliverDepartmentId': userInfo.deliverDepartmentId, // 门店id
-            'receivePerson': userInfo.receivePerson, // 收货人姓名
-            'receiveMobile': userInfo.receiveMobile, // 收货人手机
+            'receivePerson': userInfo.userName, // 收货人姓名
+            'receiveMobile': userInfo.mobile, // 收货人手机
             'deliverAddress': userInfo.userArea + userInfo.userAddress, // 送货地址
             'elevator': userInfo.elevator,  // 是否有电梯 1:有 0：无
             'floor': userInfo.floor, // 楼层
             'payType': '1', // 支付方式  1：货到付款   2：在线支付
             'deliveryType': '1', // 配送方式  1：送货上门    2：上门提货
-            'bookingTime': '2017-10-19 11:47', // 预约时间
-            'customerRemark': '1',
-            'gasCost': this.totalPrice * 100, // 燃气费
+            'bookingTime': this.appointmentTime, // 预约时间
+            'customerRemark': this.remarkText,
+            'gasCost': this.totalPrice * 100, // 燃气费 精确到分
             'waterCost': 0, // 水费（不含送水费、楼层费）
             'auxiliaryMaterialCost': 0, // 辅料费
             'deliverCost': 0, // 运费
@@ -206,6 +208,17 @@
       color rgba(255, 255, 255, 0.4)
       .content-left
         flex 1
+        flex-direction row-reverse
+        color #fff
+        padding 4px 10px
+        .top,.bottom
+          height 20px 
+          line-height 20px
+          font-size 14px
+          .red
+            color #f96363
+          .remark 
+            font-size 10px  
         .logo-wrapper
           display inline-block
           position relative

@@ -2,31 +2,30 @@
   <div class="address-manage">
     <div class="header">
       <i class="iconfont back" @click="back">&#xe603;</i>
-      <h3 class="title">地址管理</h3>
+      <h3 class="title">选择地址</h3>
     </div>
     <div class="content">
       <ul class="address-list">
-        <li class="item" v-for="item in addressList">
-          <div class="info">
-            <div class="left">
-              <i class="iconfont">&#xe60d;</i>
-            </div>
+        <li class="item" v-for="item in addressList" :class="item.isLpgDefault===1?'default':''">
+          <div class="info" :class="item.isLpgDefault===2?'default':''" @click="selectAddress">
             <div class="right">
-              <div class="right-top">
-                <span class="receiver">{{item.userName}}</span>
-                <span class="phone">{{item.phone}}</span>
+              <!-- <div>
+                <span class="address">收货人&nbsp;:&nbsp;{{item.userName}}</span>
+              </div> -->
+              <div>
+                <span class="receiver">联系电话&nbsp;:&nbsp;{{item.phone}}</span>
               </div>
-              <div class="right-bottom">
-                <span class="address">{{item.detailAddress}}</span>
+              <div>
+                <span class="address">收货地址&nbsp;:&nbsp;{{item.areaName}}{{item.detailAddress}}</span>
               </div>
             </div>
           </div>
-          <div class="operate">
+          <div class="operate" :class="item.isLpgDefault===1?'default':''">
             <div class="left">
-              <div @click="setDefault(item)">
-                <i class="iconfont" :class="item.isLpgDefault==='1'?'default':''">&#xe60e;</i>
-                <span>设为默认</span>
-              </div>
+              <div @click.stop="setDefault(item, $event)" :class="item.isLpgDefault===1?'default':''">
+                <i class="iconfont" :class="item.isLpgDefault===1?'default':''">&#xe60e;</i>
+                <span :class="item.isLpgDefault===1?'default':''">默认地址</span>
+              </div> 
             </div>
             <div class="right">
               <div @click="edit(item)">
@@ -41,50 +40,66 @@
           </div>
         </li>
       </ul>
+      <div class="add-address" @click="addAddress">
+        <span>添加新地址</span>
+      </div>
     </div>
-    <div class="add" @click="addAddress">
-      <x-button type="primary">新建地址</x-button>
+    <div class="confirm" >
+      <x-button type="primary">确定</x-button>
     </div>
+    <Loading class="loading" :text="loadingText" :show="showLoading"></Loading>
+    <div>
+      <confirm v-model="showConfirm"
+        :title="confirmTitle"
+        @on-cancel="onConfirmCancel"
+        @on-confirm="onConfirmSure">
+      </confirm>
+    </div>        
   </div>
 </template>
 <script type="text/ECMAScript-6">
-  const getAddressListUrl = '/zrds/ZRapp/getSendAddressListByUserId'
-  const setDefaultAddressUrl = '/zrds/ZRapp/updateBuyerDeliveryToLpgDefault'
-  const deleteAddressUrl = '/zrds/ZRapp/deleteAddress'
-  const ERR_OK = 1
-//  import Vue from 'vue'
-  import { XButton, cookie } from 'vux'
-  import { parseParam } from '../../api/config'
-
+  import { XButton, cookie, Loading, Confirm } from 'vux'
+  import { getAddressListUrl, deleteAddressUrl, setDefaultLpgAddressUrl } from '../../api/config'
   export default {
     data () {
       return {
-        addressList: []
-      }
-    },
-    computed: {
-      localSid () {
-        let sid = cookie.get('sid')
-        return 'aaahg10001/' + sid
+        addressList: [],
+        userId: '',
+        operateAddressId: '',
+        loadingText: '正在加载地址列表',
+        showLoading: true,
+        showConfirm: false,
+        confirmTitle: ''
       }
     },
     created () {
-      this.fetchData()
+      this.getAddressList()
     },
-    watch: {
-      '$route': 'fetchData'
+    computed: {
+      address () {
+        let address = cookie.get('defaultAddress')
+        if (address) {
+          return JSON.parse(address)
+        } else {
+          let addressData = {
+            phone: '',
+            detailAddress: ''
+          }
+          return addressData
+        }
+      }
     },
     methods: {
       back () {
         this.$router.back()
       },
-      fetchData () { // 获取地址信息
+      getAddressList () { // 获取地址信息
         let data = {
-          userId: cookie.get('userId')
+          'userId': this.address.appUserId
         }
-//        Vue.http.defaults.headers.post['x-mas-app-info'] = this.localSid
-        this.$http.post(getAddressListUrl, parseParam(data)).then((res) => {
-          if (res.data.status === ERR_OK) {
+        this.$http.post(getAddressListUrl, JSON.stringify(data)).then((res) => {
+          this.showLoading = false
+          if (res.data.status === '1') {
             this.addressList = res.data.data
           }
         })
@@ -92,40 +107,69 @@
       addAddress () {
         this.$router.push('/addAddress')
       },
-      setDefault (item) { // 设置默认地址
-        let data = {
-          id: item.id,
-          userId: cookie.get('userId')
+      setDefault (item, $event) { // 设置默认地址
+        if ($event.target.className === 'default') {
+          return
         }
-        this.$http.post(setDefaultAddressUrl, parseParam(data)).then((res) => {
-          // console.log(res.data)
-          if (res.data.status === 1) {
-            cookie.remove('defaultAddress')
-            cookie.set('defaultAddress', JSON.stringify(item))
-            // this.fetchData()
-            this.$router.push('/Register')
-          }
-        })
+        this.userId = item.userId
+        this.operateAddressId = item.id
+        this.confirmTitle = '确定设为默认地址？'
+        this.showConfirm = true
       },
       edit (item) { // 编辑地址
+        console.log(item)
+        console.log(item.areaName)
+        console.log(typeof item.areaName)
         cookie.set('editAddress', JSON.stringify(item))
-        this.$router.push('/EditAddress')
+        this.$router.push('/addressEdit')
       },
       deleteAddress (item) {
+        console.log(item)
+        this.userId = item.userId
+        this.operateAddressId = item.id
+        this.confirmTitle = '确定删除此地址？'
+        this.showConfirm = true
+      },
+      selectAddress () {
+        this.$router.push('/lpgShop')
+      },
+      onConfirmCancel () {
+        this.showConfirm = false
+        this.confirmTitle = ''
+      },
+      onConfirmSure () { // 确认删除
+        this.showConfirm = false
         let data = {
-          id: item.id,
-          userId: cookie.get('userId')
+          id: this.operateAddressId,
+          userId: this.userId
         }
-        this.$http.post(deleteAddressUrl, parseParam(data)).then((res) => {
-          console.log(res.data)
-          if (res.data.status === 1) {
-            this.fetchData()
-          }
-        })
+        let _this = this
+        if (this.confirmTitle === '确定删除此地址？') { // 删除地址
+          this.$http.post(deleteAddressUrl, JSON.stringify(data)).then((res) => {
+            console.log(res.data)
+            if (res.data.status === '1') {
+              _this.addressList = []
+              _this.getAddressList()
+              _this.showLoading = true
+            }
+          })
+        } else if (this.confirmTitle === '确定设为默认地址？') { // 设为默认地址
+          this.$http.post(setDefaultLpgAddressUrl, JSON.stringify(data)).then((res) => {
+            console.log(res.data)
+            if (res.data.status === '1') {
+              _this.getAddressList()
+              _this.showLoading = true
+            }
+          })
+        }
+        // 清除confirmTitle
+        this.confirmTitle = ''
       }
     },
     components: {
-      XButton
+      XButton,
+      Loading,
+      Confirm
     }
   }
 </script>
@@ -138,7 +182,9 @@
       line-height 40px
       position relative
       text-align center
-      background-color #fff
+      border-bottom 1px solid #dadada
+      background-color #38d164
+      color #fff
       .back
         position absolute
         left 0
@@ -150,16 +196,23 @@
     .content
       .item
         background-color #fff
-        border-radius 5px
-        margin 15px 5px 0 5px
-        padding 5px
+        margin 15px 0
+        padding 5px 10px
         font-size 16px
+        &.default
+          background-color #b1e5c0
+          .info 
+            border-color #5dd57f
         .info
           display flex
           border-bottom 1px solid #eee
+          padding 5px 0
+          &.default
+            border-color #5dd57f
+            color #6a6a6a                     
           .left
             flex 0 0 40px
-            text-align center
+            text-align left
             .iconfont
               display inline-block
               margin-top 24px
@@ -173,9 +226,12 @@
               justify-content space-between
         .operate
           display  flex
-          height 40px
-          line-height 40px
+          height 30px 
+          line-height 30px
+          margin-top 8px
           font-size 12px
+          &.default
+            color #808080
           .left
             flex 1
             text-align center
@@ -188,18 +244,18 @@
                   color #1AAD19
           .right
             flex 1
-            padding-left 10px
             display flex
             div
-              display inline-block
-              .edit
-                margin-right 35px
+              flex 1
               .iconfont
                 margin-right 3px
-    .add
-      position absolute
-      left 5%
-      width 90%
-      bottom 10px
-      text-align center
+      .add-address 
+        font-size 14px 
+        color #38d164
+        margin 15px 
+        text-align right
+        span 
+          padding 5px 10px
+    .confirm
+      margin 30px 15px 0 15px
 </style>

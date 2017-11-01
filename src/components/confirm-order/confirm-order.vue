@@ -5,18 +5,18 @@
       <h3 class="title">确认订单</h3>
     </div>
     <div class="content">
-      <div class="info" @click="selectAddress">
+      <div class="info">
         <div class="phone">
-          <span>联系电话:</span>
-          <span>{{address.receiveMobile}}</span>
+          <span class="left">联系电话:</span>
+          <span>{{address.mobile}}</span>
         </div>
         <div class="address">
-          <span>收货地址:</span>
+          <span class="left">收货地址:</span>
           <span>{{address.userArea}}{{address.userAddress}}</span>
         </div>
-        <div class="arrow-right">
+        <!-- <div class="arrow-right">
           <i class="iconfont enter">&#xe601;</i>
-        </div>
+        </div> -->
       </div>
       <div class="pay">
         <div class="pay-way">
@@ -28,21 +28,23 @@
           <span>送货上门</span>
         </div>
         <div class="receive-time">
-          <datetime v-model="appointmentTime" format="YYYY-MM-DD HH:mm" @on-change="selectAppointmentTime" title="预约送达时间" :min-year="minYear" :max-year="maxYear" required></datetime>
+          <datetime v-model="appointmentTime" format="YYYY-MM-DD HH:mm" start-date="2017-10-26" @on-change="selectAppointmentTime" title="预约送达时间" :min-year="minYear" :max-year="maxYear" required></datetime>
         </div>
         <div class="note">
           <span>配送人员将在预约时间前/后半小时内为您送达</span>
         </div>
         <div class="remark">
-          <x-input title="备注：" placeholder="
-请根据您的实际情况备注说明"></x-input>
+          <x-input title="备注：" placeholder="请根据您的实际情况备注说明" @on-focus="remarkFocus" @on-blur="remarkBlur" v-model="remarkText"></x-input>
         </div>
       </div>
       <div class="shop">
-        <div class="shop-name">XXX店铺</div>
+        <div class="shop-name">{{address.deliverDepartmentName}}</div>
         <div class="good-list" ref="goodWrapper">
           <ul>
             <li class="good" v-for="good in selectGoods"  v-show="good.amount>0">
+              <div class="logo">
+                <img src="../../common/image/LPG_small.png" width="20" height="20">                
+              </div>
               <div class="good-name">{{good.gasTypeName}}</div>
               <div class="good-price">￥{{good.bottlePrice}}</div>
               <div class="cartcontrol-wrapper">
@@ -53,44 +55,34 @@
         </div>
       </div>
     </div>
-    <shopcart :selectGoods="selectGoods" :address="address" ref="shopcart"></shopcart>
+    <div class="shopcart-wrapper" ref="shopcartWrapper">
+      <shopcart :selectGoods="selectGoods" :address="address" :appointmentTime="appointmentTime" :remarkText="remarkText" ref="shopcart"></shopcart>
+    </div>
   </div>
 </template>
 <script type="text/ECMAScript-6">
-  import { cookie, Datetime, XInput } from 'vux'
+  import { cookie, Datetime, XInput, dateFormat } from 'vux'
   import { mapGetters } from 'vuex'
   import shopcart from '../shopcart/shopcart.vue'
-  const getDefaultAddressUrl = 'lw/controller/buyerDelivery/queryBuyerDeliveryOfLgpMas.do'
-
+  import { getDefaultAddressUrl } from '../../api/config'
   export default {
     data () {
       return {
-        appointmentTime: '2017-9-29 14:59:23',
+        appointmentTime: dateFormat(new Date(), 'YYYY-MM-DD HH:mm:ss'),
         minYear: 2017,
         maxYear: 2099,
-        defaultAddress: {}
+        remarkText: '',
+        address: JSON.parse(cookie.get('defaultAddress'))
       }
     },
     computed: {
       ...mapGetters({
         selectGoods: 'selectGoods'
-      }),
-      address () {
-        let address = cookie.get('defaultAddress')
-        console.log(JSON.parse(address))
-        if (address) {
-          return JSON.parse(address)
-        } else {
-          let addressData = {
-            phone: '',
-            detailAddress: ''
-          }
-          return addressData
-        }
-      }
+      })
     },
     created () {
       this.getDefaultAddress()
+      this.startDate = this.getStartDate()
     },
     methods: {
 //      addGood (target) {
@@ -98,6 +90,12 @@
 //      },
       back () {
         this.$router.back()
+      },
+      getStartDate () {
+        let date = dateFormat(new Date(), 'YYYY-MM-DD HH:mm:ss')
+        let startDate = date.substring(0, 10)
+        console.log(startDate)
+        return startDate
       },
       // _initScroll () {
       //   this.goodScroll = new BScroll(this.$refs.goodWrapper, {
@@ -111,16 +109,25 @@
       selectAppointmentTime (val) {
         console.log('change', val)
       },
-      selectAddress () {
-        this.$router.push('/addressManage')
-      },
+      // selectAddress () {
+      //   this.$router.push('/addressManage')
+      // },
       getDefaultAddress () {
         let data = {
           'userId': this.address.appUserId
         }
+        let _this = this
         this.$http.post(getDefaultAddressUrl, JSON.stringify(data)).then((res) => {
-          console.log(res)
+          if (res.data.status === '1') {
+            _this.defaultAddress = res.data.data
+          }
         })
+      },
+      remarkFocus () {
+        this.$refs.shopcart.$el.style.display = 'none'
+      },
+      remarkBlur () {
+        this.$refs.shopcart.$el.style.display = 'block'
       }
     },
     components: {
@@ -133,6 +140,7 @@
 <style scoped lang="stylus" rel="stylesheet/stylus">
   .confirm-order
     background-color #f4f4f4
+    min-height 100%
     .header
       height 40px
       line-height 40px
@@ -154,16 +162,8 @@
         background-color #fff
         margin-top 20px
         line-height 30px
-        padding 0 15px
+        padding 5px 10px
         font-size 12px
-        position relative
-        .arrow-right
-          position absolute
-          margin-top -16px
-          right 5%
-          top 50%
-          .enter
-            font-size 16px
       .pay
         margin-top 20px
         background-color #fff
@@ -202,21 +202,22 @@
           padding 10px 0 10px 10px
           background-color #eee
         .good
-          padding 10px
+          padding 15px 10px
           font-size 0
           position relative
           border-bottom 1px solid #e6e6e6
+          display flex
+          align-items center
+          font-size 14px
           .good-name
-            font-size 14px
-            font-weight 200
+            margin-left 6px
           .good-price
-            font-size 12px
+            margin-left 6px
             color red
-            margin-top 10px
           .cartcontrol-wrapper
             position absolute
             right 20px
-            top 15px
+            top 20px
             span
               font-size 14px
 

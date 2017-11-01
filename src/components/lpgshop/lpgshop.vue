@@ -1,9 +1,17 @@
 <template>
   <div class="company-shop">
     <div class="header">
-      <h3>商品选择</h3>
-      <div class="center" @click="enter">
-        <i class="iconfont">&#xe60f;</i>
+      <div>
+        <h3>
+          <div class="select-address" @click="changeAddress">
+            <i class="iconfont left">&#xe60d;</i>
+            <span class="current-address">{{address.userAddress}}</span>
+            <i class="iconfont right">&#xe601;</i>
+          </div>
+        </h3>
+      </div>
+      <div class="center" @click="enterOrderCenter">
+        <i class="iconfont">&#xe600;</i>
       </div>
     </div>
     <!-- <div class="slider-wrapper">
@@ -15,7 +23,8 @@
     </div> -->
     <div class="good-list"  ref="goodList">
       <div class="title">
-        {{goodsTitle}}
+        <img src="../../common/image/LPG_small.png" width="20" height="20">
+        <span>{{goodsTitle}}</span>
       </div>
       <ul>
         <li class="good" v-for="good in goods">
@@ -27,18 +36,15 @@
         </li>
       </ul>
     </div>
-    <shopcart :selectGoods="selectGoods"></shopcart>
+    <shopcart :selectGoods="selectGoods" :address="address"></shopcart>
     <Loading class="loading" :text="loadingText" :show="showLoading"></Loading>
   </div>
 </template>
 <script type="text/ECMAScript-6">
-  const getGasListUrl = '/lw/controller/forGas/getGasListMas.do'
-
   import cartcontrol from '../../base/cartcontrol/cartcontrol.vue'
   import shopcart from '../shopcart/shopcart.vue'
-  import slider from '../../base/slider/slider.vue'
   import { Loading, cookie } from 'vux'
-
+  import { getGasListUrl } from '../../api/config'
   export default {
     data () {
       return {
@@ -47,11 +53,7 @@
         goods: [],
         showLoading: true,
         loadingText: '加载中...',
-        imageUrls: [
-          'http://00.rc.xiniu.com/g1/M00/D0/06/CgAGS1kpHLKAN3VUAAI-cZamYUA420.jpg',
-          'http://00.rc.xiniu.com/g1/M00/D0/06/CgAGS1kpHLKADdIQAALW1KkkGiI047.jpg',
-          'http://00.rc.xiniu.com/g1/M00/D0/06/CgAGS1kpHLKAc4g1AAW35IqvU_c466.jpg'
-        ]
+        address: JSON.parse(cookie.get('defaultAddress'))
       }
     },
     created () {
@@ -59,7 +61,7 @@
         orderGasNo: cookie.get('orderGasNo')
       }
       this.$http.post(getGasListUrl, JSON.stringify(data)).then((res) => {
-        console.log(res.data.data)
+        // console.log(res.data.data)
         if (res.data.status === '1') {
           this.goods = res.data.data
           this.showLoading = false
@@ -81,15 +83,19 @@
       addGood (target) {
         this.$emit('add', target)
       },
-      enter () {
-        this.$router.push('/OrderCenter')
+      enterOrderCenter () {
+        this.$router.push('/orderCenter')
+      },
+      changeAddress () {
+        // this.showLoading = true
+        // this.loadingText = '正在跳转..'
+        this.$router.push('/addressManage')
       }
     },
     components: {
       cartcontrol,
       shopcart,
-      Loading,
-      slider
+      Loading
     }
   }
 </script>
@@ -103,13 +109,25 @@
     background-color #38d164
     color #fff
     position relative
+    .select-address 
+      display inline-block 
+      padding 0 20px
+      max-width 200px 
+      text-overflow ellipsis
+      white-space nowrap
+      overflow hidden
+      position relative 
+      .iconfont 
+        position absolute
+        &.left 
+          left 0px 
+        &.right 
+          right 0px  
     .center
       position absolute
       right 10px
       top 0
       padding 0 10px
-      .iconfont
-        font-size 20px
   .slider-wrapper
     overflow hidden
   .good-list
@@ -118,6 +136,13 @@
       line-height 20px
       padding 10px 0 10px 10px
       background-color #eee
+      display flex
+      span 
+        height 20px 
+        line-height 20px
+        margin-left 6px
+        font-size 14px
+        display inline-block
     ul
       margin-bottom 48px  
       .good
