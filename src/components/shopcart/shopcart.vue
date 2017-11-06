@@ -2,15 +2,22 @@
   <div>
     <div class="shopcart">
       <div class="content" @click="toggleList">
-        <div class="content-left">
+        <div class="content-left" v-show="fullPath==='/lpgshop'||fullPath==='/lpgShop'">
           <div class="top">合计商品：<span class="red">{{totalamount}}件</span></div>
-          <div class="bottom">合计金额：<span class="red">￥{{totalPrice}}</span>&nbsp;&nbsp;<span class="remark">(不包含送气费，楼层费)</span></div>
+          <div class="bottom">合计金额：<span class="red">￥{{totalGasPrice}}</span>&nbsp;&nbsp;<span class="remark">(不包含送气费，楼层费)</span></div>
+        </div>
+        <div class="content-left" v-show="fullPath==='/confirmOrder'||fullPath==='/confirmorder'">
+          <div class="top">合计金额:<span class="red">￥{{totalGasPrice+totalFloorPrice+totalFreightPrice}}</span></div>
+          <div class="bottom bottom-spec">
+            <div>送气费:￥{{totalFreightPrice}}</div>
+            <div class="floor">楼层费:￥{{totalFloorPrice}}</div>
+          </div>
         </div>
         <div class="content-right">
           <div class="pay" :class="payClass" @click.stop.prevent="pay">{{payDesc}}</div>
         </div>
       </div>
-      <transition name="fold">
+      <!-- <transition name="fold">
         <div class="shopcart-list" v-show="listShow">
           <div class="list-header">
             <div class="title">购物车</div>
@@ -30,11 +37,11 @@
             </ul>
           </div>
         </div>
-      </transition>
+      </transition> -->
     </div>
-    <transition name="fade">
+    <!-- <transition name="fade">
       <div class="list-mark" v-show="listShow" @click="hideList"></div>
-    </transition>
+    </transition> -->
     <Loading class="loading" :text="loadingText" :show="showLoading"></Loading>
   </div>
 </template>
@@ -62,11 +69,12 @@
       return {
         fold: true,
         showLoading: false,
-        loadingText: '提交订单中...'
+        loadingText: '提交订单中...',
+        fullPath: this.$router.history.current.fullPath
       }
     },
     computed: {
-      totalPrice () {
+      totalGasPrice () {
         let total = 0
         this.selectGoods.forEach((good) => {
           total += Number(good.bottlePrice) * good.amount
@@ -80,19 +88,38 @@
         })
         return amount
       },
+      totalFloorPrice () {
+        let total = 0
+        if (this.address.elevator === '1' || this.address.haveElevator === 1) {
+          return total
+        }
+        let floor = this.address.floor ? Number(this.address.floor) - 1 : Number(this.address.floorLevel) - 1
+        // console.log('需要计算楼层费的层数为：' + floor)
+        this.selectGoods.forEach((good) => {
+          total += floor * good.amount
+        })
+        return total
+      },
+      totalFreightPrice () {
+        let total = 0
+        this.selectGoods.forEach((good) => {
+          total += Number(good.freight) * good.amount
+        })
+        return total
+      },
       payDesc () {
-        if (this.totalPrice === 0) {
+        if (this.totalGasPrice === 0) {
           return '请选择商品'
         } else {
-          if (this.$router.history.current.fullPath === '/lpgshop') {
+          if (this.fullPath === '/lpgshop') {
             return '结算'
           } else {
-            return '提交'
+            return '提交订单'
           }
         }
       },
       payClass () {
-        if (this.totalPrice > 0) {
+        if (this.totalGasPrice > 0) {
           return 'enough'
         } else {
           return 'not-enough'
@@ -109,7 +136,7 @@
     },
     methods: {
       pay () {
-        if (this.totalPrice === 0) {
+        if (this.totalGasPrice === 0) {
           return
         }
         this.setSelectGoods(this.selectGoods)
@@ -120,27 +147,46 @@
         } else { // 提交订单
           let userInfo = this.address
           let selectFoodStr = JSON.stringify(this.selectGoods)
+          // let deliverAddress = ''
+          // let deliverCompanyId = ''
+          // let deliverDepartmentId = ''
+          // let elevator = ''
+          // let floor = ''
+          // if (userInfo.userArea && userInfo.userAddress) {
+          //   deliverAddress = userInfo.userArea + userInfo.userAddress
+          //   deliverCompanyId = userInfo.orgCode
+          //   deliverDepartmentId = userInfo.departmentCode
+          //   elevator = userInfo.haveElevator
+          //   floor = userInfo.floorLevel
+          // } else {
+          //   deliverAddress = userInfo.areaName + userInfo.detailAddress
+          //   deliverCompanyId = userInfo.deliverCompanyId
+          //   deliverDepartmentId = userInfo.deliverDepartmentId
+          //   elevator = userInfo.elevator
+          //   floor = userInfo.floor
+          // }
+
           let data = {
             'userId': cookie.get('appUserId'), // appUserId
             'userCode': cookie.get('orderGasNo'), // 订气编号
             // 'orderGasNo': cookie.get('orderGasNo'), // 订气编号
-            'deliverCompanyId': userInfo.deliverCompanyId, // 公司id
-            'deliverDepartmentId': userInfo.deliverDepartmentId, // 门店id
+            'deliverCompanyId': userInfo.deliverCompanyId ? userInfo.deliverCompanyId : userInfo.orgCode, // 公司id
+            'deliverDepartmentId': userInfo.deliverDepartmentId ? userInfo.deliverDepartmentId : userInfo.departmentCode, // 门店id
             'receivePerson': userInfo.userName, // 收货人姓名
             'receiveMobile': userInfo.mobile, // 收货人手机
-            'deliverAddress': userInfo.userArea + userInfo.userAddress, // 送货地址
-            'elevator': userInfo.elevator,  // 是否有电梯 1:有 0：无
-            'floor': userInfo.floor, // 楼层
+            'deliverAddress': userInfo.userArea ? userInfo.userArea + userInfo.userAddress : userInfo.areaName + userInfo.detailAddress, // 送货地址
+            'elevator': userInfo.elevator ? userInfo.elevator : userInfo.haveElevator,  // 是否有电梯 1:有 0：无
+            'floor': userInfo.floor ? userInfo.floor : userInfo.floorLevel, // 楼层
             'payType': '1', // 支付方式  1：货到付款   2：在线支付
             'deliveryType': '1', // 配送方式  1：送货上门    2：上门提货
             'bookingTime': this.appointmentTime, // 预约时间
             'customerRemark': this.remarkText,
-            'gasCost': this.totalPrice * 100, // 燃气费 精确到分
+            'gasCost': this.totalGasPrice * 100, // 燃气费 精确到分
             'waterCost': 0, // 水费（不含送水费、楼层费）
             'auxiliaryMaterialCost': 0, // 辅料费
-            'deliverCost': 0, // 运费
-            'floorCost': 0, // 楼层费
-            'totalCost': this.totalPrice * 100, // 总费用
+            'deliverCost': this.totalFreightPrice * 100, // 运费
+            'floorCost': this.totalFloorPrice * 100, // 楼层费
+            'totalCost': (this.totalGasPrice + this.totalFloorPrice + this.totalFreightPrice) * 100, // 总费用
             'lstGasStr': selectFoodStr, // 瓶装气商品列表
             'lstWaterStr': '[]', // 桶装水商品列表
             'lstAuxinliaryMaterialStr': '[]', // 辅料商品列表
@@ -214,11 +260,16 @@
         .top,.bottom
           height 20px 
           line-height 20px
-          font-size 14px
+          font-size 14px             
           .red
             color #f96363
           .remark 
             font-size 10px  
+        .bottom-spec
+          display flex 
+          justify-content space-between
+          .floor 
+            margin-right 30px            
         .logo-wrapper
           display inline-block
           position relative
@@ -245,7 +296,6 @@
               line-height 44px
               &.highlight
                 color #fff
-
           .number
             position absolute
             top 0

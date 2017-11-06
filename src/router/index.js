@@ -48,6 +48,12 @@ export default new Router({
       }
     },
     {
+      path: '/newAddress',
+      component: function (resolve) {
+        require(['../components/new-address/new-address.vue'], resolve)
+      }
+    },
+    {
       path: '/orderDetail',
       component: function (resolve) {
         require(['../components/order-detail/order-detail.vue'], resolve)

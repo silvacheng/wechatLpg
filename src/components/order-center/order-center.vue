@@ -9,18 +9,22 @@
         <tab-item selected @on-item-click="onItemClick">全部</tab-item>
         <tab-item @on-item-click="onItemClick">待发货</tab-item>
         <tab-item @on-item-click="onItemClick">待收货</tab-item>
-        <tab-item @on-item-click="onItemClick">已发货</tab-item>
+        <tab-item @on-item-click="onItemClick">已收货</tab-item>
       </tab>
       <div class="content">
         <ul>
-          <li class="order" v-for="order in totalOrder" v-show="totalOrder.length>0">
+          <li class="order" v-for="(order, index) in totalOrder" v-show="selectOrderState==='all'||order.orderState===selectOrderState">
             <div class="order-title">
               <span class="shop">华来门店</span>
-              <span class="status">等待卖家发货</span>
+              <span class="status" v-show="order.orderState==='2'">等待卖家发货</span>
+              <span class="status" v-show="order.orderState==='3'">等待买家收货</span>
+              <span class="status" v-show="order.orderState==='4'">交易完成</span>
+              <span class="status" v-show="order.orderState==='5'">交易关闭</span>
+              <span class="status" v-show="order.orderState==='6'">已取消</span>
             </div>
-            <div class="good" @click="enterDetail(order)">
+            <div class="good-wrapper" @click="enterDetail(order, index)">
               <ul>
-                <li class="good-item" v-for="good in order.lstGas">
+                <li class="good-item" v-for="good in order.lstGas" v-show="good.amount>0">
                   <div class="left">
                     <img src="../../common/image/LPG_small.png" width="35" height="35">
                   </div>
@@ -29,7 +33,8 @@
                       <span>{{good.gasTypeName}}</span>
                     </div>
                     <div class="right-middle">
-                      <span>送气费10.00</span><span class="right">楼层费1.00元&nbsp;/&nbsp;层</span>
+                      <span v-show="good.freight&&Number(good.freight)!==0">送气费{{good.freight}}元&nbsp;/&nbsp;瓶</span>
+                      <span class="right" v-show="address.elevator==='0'||address.haveElevator===0">楼层费1.00元&nbsp;/&nbsp;层</span>
                     </div>
                     <div class="right-bottom">
                       <div class="price">￥{{good.bottlePrice}}</div>
@@ -40,75 +45,192 @@
               </ul>
             </div>
             <div class="info">
-              <div class="time">{{order.bookingTime.substring(0,10)}}</div>
-              <div class="total">共{{order.lstGas.length}}件商品&nbsp;合计:<span>￥{{order.totalCost/100}}</span></div>
+              <div class="time">{{order.createTime}}</div>
+              <div class="total">共{{goodAmout(order)}}件商品&nbsp;合计:<span>￥{{order.totalCost/100}}</span></div>
             </div>
             <div class="operate">
-              <span @click="deleteOrder">删除订单</span>
+              <span @click="deleteOrder(order)" v-show="order.orderState==='6'">删除订单</span>
+              <span @click="cancelOrder(order)" v-show="order.orderState==='2'">取消订单</span>
             </div>
-          </li>
+          </li>                   
         </ul>
+          <div class="empty" v-show="showEmpty" ref="noneOrder">
+            <div>
+              <img src="../../common/image/no_order.png" alt="" width="64" height="80">
+              <p>您还没有相关订单</p>
+            </div>
+          </div>        
+      </div>
+      <div>
+        <confirm v-model="showConfirm"
+          :title="confirmTitle"
+          @on-cancel="onConfirmCancel"
+          @on-confirm="onConfirmSure">
+        </confirm>
       </div>
     </div>
     <Loading class="loading" :text="loadingText" :show="showLoading"></Loading>
   </div>
 </template>
 <script type="text/ECMAScript-6">
-  import { Tab, TabItem, cookie, Loading } from 'vux'
+  import { Tab, TabItem, cookie, Loading, Confirm } from 'vux'
   import { getGasOrderUrl, updateGasOrderUrl } from '../../api/config'
   export default {
     data () {
       return {
         totalOrder: [],
         loadingText: '加载订单列表中..',
-        showLoading: true,
-        address: JSON.parse(cookie.get('defaultAddress'))
+        showLoading: false,
+        address: JSON.parse(cookie.get('defaultAddress')),
+        confirmTitle: '',
+        showConfirm: false,
+        currentOperateOrder: {},
+        selectOrderState: 'all',
+        showEmpty: false
       }
     },
     created () {
-      let orderGasNo = cookie.get('orderGasNo')
-      let data = {
-        'orderGasNo': orderGasNo
-      }
-      console.log(data)
-      this.$http.post(getGasOrderUrl, JSON.stringify(data)).then((res) => {
-        if (res.data.status === '1') {
-          this.totalOrder = res.data.data
-          this.showLoading = false
+      // 获取订单列表
+      this.getOrderList()
+      // console.log(document.body.clientHeight)
+      // console.log(this.$refs)
+    },
+    watch: {
+      selectOrderState (newState) {
+        console.log('当前选择的状态为：' + newState)
+        if (newState === 'all') {
+          if (this.totalOrder.length > 0) { // 全部订单
+            this.showEmpty = false
+          } else {
+            this.showEmpty = true
+          }
+        } else { //  2,3，4  待发货 待收货 已收货
+          if (this.totalOrder && this.totalOrder.length > 0) {
+            for (let i = 0; i < this.totalOrder.length; i++) {
+              if (this.totalOrder[i].orderState === newState) {
+                this.showEmpty = false
+                break
+              } else {
+                this.showEmpty = true
+              }
+            }
+          }
         }
-      })
+      }
     },
     methods: {
       back () {
         this.$router.push('/lpgshop')
       },
-      onItemClick (index) {
-        console.log('on item click:', index)
-      },
-      enterDetail (item) {
-        cookie.set('selectedOrder', JSON.stringify(item))
-        this.$router.push('/orderDetail')
-      },
-      deleteOrder () {
-        let data = {
-          id: '615132',
-          orderState: 2,
-          deliverDepartmentId: '111212000001',
-          orderCode: '171101880025',
-          cancelReason: '中燃慧生活'
+      goodAmout (order) {
+        let num = 0
+        let goodArr = order.lstGas
+        for (let i = 0; i < goodArr.length; i++) {
+          num += goodArr[i].amount
         }
-        this.$http.post(updateGasOrderUrl, JSON.stringify(data)).then((res) => {
-          if (res.data.status === '1') {
-            this.goods = res.data.data
+        return num
+      },
+      onItemClick (index) {
+        if (index === 0) {
+          this.selectOrderState = 'all'
+        } else if (index === 1) {
+          this.selectOrderState = '2'
+        } else if (index === 2) {
+          this.selectOrderState = '3'
+        } else if (index === 3) {
+          this.selectOrderState = '4'
+        }
+      },
+      getOrderList () {
+        this.showLoading = true
+        let orderGasNo = cookie.get('orderGasNo')
+        let data = {
+          'orderGasNo': orderGasNo
+        }
+        // console.log(data)
+        this.$http.post(getGasOrderUrl, JSON.stringify(data)).then((res) => {
+          if (res.data.status === '1' && res.data.data.length > 0) {
+            let orders = res.data.data
+            console.log(orders)
+            this.totalOrder = orders.reverse()
+            this.showEmpty = false
+            this.showLoading = false
+          } else if (res.data.status === '1' && res.data.data.length === 0) {
+            this.totalOrder = []
+            this.showEmpty = true
+            this.showLoading = false
+          } else {
+            this.showEmpty = true
             this.showLoading = false
           }
         })
+      },
+      enterDetail (order, index) {
+        this.currentOperateOrder = order
+        // console.log('当前查看详情的订单的序号为：' + (index + 1))
+        // console.log(this.totalOrder[index])
+        cookie.set('selectedOrder', JSON.stringify(order))
+        this.$router.push('/orderDetail')
+      },
+      cancelOrder (order) { // 取消订单
+        this.currentOperateOrder = order
+        this.confirmTitle = '确定取消此订单？'
+        this.showConfirm = true
+      },
+      deleteOrder (order) { // 删除订单
+        this.currentOperateOrder = order
+        this.confirmTitle = '确定删除此订单？'
+        this.showConfirm = true
+      },
+      onConfirmCancel () {
+        this.showConfirm = false
+        this.confirmTitle = ''
+        this.currentOperateOrder = {}
+      },
+      onConfirmSure () { // 确认删除
+        this.showConfirm = false
+        if (!this.currentOperateOrder) {
+          return
+        }
+        let order = this.currentOperateOrder
+        let data = {
+          id: order.id,
+          orderState: order.orderState,
+          deliverDepartmentId: order.deliverDepartmentId,
+          orderCode: order.orderCode,
+          cancelReason: order.receivePerson
+        }
+        let _this = this
+        if (this.confirmTitle === '确定删除此订单？') { // 删除订单
+          data.isDel = 2
+          this.$http.post(updateGasOrderUrl, JSON.stringify(data)).then((res) => {
+            console.log(res.data)
+            // 清除操作的订单
+            _this.currentOperateOrder = {}
+            if (res.data.status === '1') {
+              _this.getOrderList()
+            }
+          })
+        } else if (this.confirmTitle === '确定取消此订单？') { // 取消订单
+          data.orderState = 6 // 发送要改变的状态
+          this.$http.post(updateGasOrderUrl, JSON.stringify(data)).then((res) => {
+            console.log(res.data)
+            // 清除操作的订单
+            _this.currentOperateOrder = {}
+            if (res.data.status === '1') {
+              _this.getOrderList()
+            }
+          })
+        }
+        // 清除confirmTitle
+        this.confirmTitle = ''
       }
     },
     components: {
       Tab,
       TabItem,
-      Loading
+      Loading,
+      Confirm
     }
   }
 </script>
@@ -145,7 +267,7 @@
         border-bottom 1px solid #e1e1e1
         .status 
           color #38d164
-      .good
+      .good-wrapper
         padding 10px 15px
         border-bottom 1px solid #e1e1e1
         font-size 12px
@@ -197,10 +319,21 @@
         background-color #fff
         padding 8px
         text-align right
-        span
+        span 
           font-size 14px
           padding 6px
           border 1px solid #a4a4a4
           border-radius 10%
           display inline-block
+    .empty
+      margin-top 10px
+      background-color #ffffff
+      text-align center
+      img 
+        margin-top 200px
+      p 
+        margin-top 30px
+        color #6a6a6a
+      
+
 </style>

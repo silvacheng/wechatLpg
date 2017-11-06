@@ -1,22 +1,21 @@
 <template>
   <div class="address-manage">
     <div class="header">
-      <i class="iconfont back" @click="back">&#xe603;</i>
+      <i class="iconfont back" @click="back" v-show="addressList.length>0">&#xe603;</i>
       <h3 class="title">选择地址</h3>
     </div>
     <div class="content">
       <ul class="address-list">
         <li class="item" v-for="item in addressList" :class="item.isLpgDefault===1?'default':''">
-          <div class="info" :class="item.isLpgDefault===2?'default':''" @click="selectAddress">
-            <div class="right">
-              <!-- <div>
-                <span class="address">收货人&nbsp;:&nbsp;{{item.userName}}</span>
-              </div> -->
-              <div>
-                <span class="receiver">联系电话&nbsp;:&nbsp;{{item.phone}}</span>
+          <div class="info" :class="item.isLpgDefault===2?'default':''" @click="selectAddress(item)">
+            <div class="info-detail">
+              <div class="top">
+                <div class="left">联系电话:</div>
+                <div class="right">{{item.phone}}</div> 
               </div>
-              <div>
-                <span class="address">收货地址&nbsp;:&nbsp;{{item.areaName}}{{item.detailAddress}}</span>
+              <div class="bottom">
+                <div class="left">收货地址:</div>
+                <div class="right">{{item.areaName}}{{item.detailAddress}}</div>
               </div>
             </div>
           </div>
@@ -40,13 +39,14 @@
           </div>
         </li>
       </ul>
-      <div class="add-address" @click="addAddress">
+      <!-- <div class="add-address" @click="addAddress">
         <span>添加新地址</span>
-      </div>
+      </div> -->
     </div>
-    <div class="confirm" >
-      <x-button type="primary">确定</x-button>
+    <div class="confirm" @click="addAddress" v-show="!showLoading">
+      <x-button type="primary">添加新地址</x-button>
     </div>
+    <alert v-model="showAlert" content="至少保留一个地址~"></alert>
     <Loading class="loading" :text="loadingText" :show="showLoading"></Loading>
     <div>
       <confirm v-model="showConfirm"
@@ -58,7 +58,7 @@
   </div>
 </template>
 <script type="text/ECMAScript-6">
-  import { XButton, cookie, Loading, Confirm } from 'vux'
+  import { XButton, cookie, Loading, Confirm, Alert } from 'vux'
   import { getAddressListUrl, deleteAddressUrl, setDefaultLpgAddressUrl } from '../../api/config'
   export default {
     data () {
@@ -69,6 +69,7 @@
         loadingText: '正在加载地址列表',
         showLoading: true,
         showConfirm: false,
+        showAlert: false,
         confirmTitle: ''
       }
     },
@@ -95,17 +96,18 @@
       },
       getAddressList () { // 获取地址信息
         let data = {
-          'userId': this.address.appUserId
+          'userId': this.address.appUserId ? this.address.appUserId : this.address.userId
         }
         this.$http.post(getAddressListUrl, JSON.stringify(data)).then((res) => {
           this.showLoading = false
           if (res.data.status === '1') {
             this.addressList = res.data.data
+            cookie.set('orderGasNo', res.data.orderGasNo)
           }
         })
       },
       addAddress () {
-        this.$router.push('/addAddress')
+        this.$router.push('/newAddress')
       },
       setDefault (item, $event) { // 设置默认地址
         if ($event.target.className === 'default') {
@@ -117,20 +119,23 @@
         this.showConfirm = true
       },
       edit (item) { // 编辑地址
-        console.log(item)
-        console.log(item.areaName)
-        console.log(typeof item.areaName)
+        // console.log(item)
+        // console.log(item.detailAddress)
         cookie.set('editAddress', JSON.stringify(item))
         this.$router.push('/addressEdit')
       },
       deleteAddress (item) {
-        console.log(item)
+        if (this.addressList.length === 1) { // 只有一个地址时
+          this.showAlert = true
+          return
+        }
         this.userId = item.userId
         this.operateAddressId = item.id
         this.confirmTitle = '确定删除此地址？'
         this.showConfirm = true
       },
-      selectAddress () {
+      selectAddress (item) {
+        cookie.set('defaultAddress', JSON.stringify(item))
         this.$router.push('/lpgShop')
       },
       onConfirmCancel () {
@@ -169,7 +174,8 @@
     components: {
       XButton,
       Loading,
-      Confirm
+      Confirm,
+      Alert
     }
   }
 </script>
@@ -199,6 +205,7 @@
         margin 15px 0
         padding 5px 10px
         font-size 16px
+        color #6a6a6a
         &.default
           background-color #b1e5c0
           .info 
@@ -210,20 +217,17 @@
           &.default
             border-color #5dd57f
             color #6a6a6a                     
-          .left
-            flex 0 0 40px
-            text-align left
-            .iconfont
-              display inline-block
-              margin-top 24px
-          .right
+          .info-detail
             flex 1
-            font-size 12px
+            font-size 14px
             line-height 30px
             padding 0 5px
-            .right-top
+            .top, .bottom 
               display flex
-              justify-content space-between
+              .left 
+                flex 0 0 70px               
+              .right 
+                flex 1               
         .operate
           display  flex
           height 30px 

@@ -8,6 +8,9 @@
       <group class="content-wrapper" label-width="5em" label-align="left">
         <x-input title="姓名" name="userName" placeholder="请输入姓名" is-type="china-name" v-model="userName" required></x-input>        
         <x-input title="联系方式" name="mobile" placeholder="请输入手机号码" keyboard="number" is-type="china-mobile" :max="11" v-model="phone" required></x-input>
+        <cell title="倒计时">
+          <countdown v-model="time1"></countdown>
+        </cell>
         <x-address title="所在地区" v-model="addressValue" :list="addressData" @on-shadow-change="onShadowChange" ref="xAddress" raw-value></x-address>
         <x-input title="详细地址" placeholder="请输入详细地址" v-model="detailAddress" required></x-input>
         <x-input title="楼层" placeholder="请输入楼层" v-model="floor" type="number" required>楼层</x-input>
@@ -29,22 +32,22 @@
   </div>
 </template>
 <script type="text/ECMAScript-6">
-  import { Group, XButton, XInput, XSwitch, XAddress, Picker, PopupRadio, ChinaAddressV3Data, cookie, Loading, Alert } from 'vux'
+  import { Group, XButton, XInput, XSwitch, XAddress, Picker, PopupRadio, ChinaAddressV3Data, cookie, Loading, Alert, Countdown, Cell } from 'vux'
   import BMap from 'BMap'
   import { getGasCompanyUrl, getGasShopUrl, saveLpgUserInfoUrl } from '../../api/config'
   export default {
     data () {
       return {
         addressData: ChinaAddressV3Data,
-        phone: '17655281147',
-        userName: '慧生活用户',
+        phone: '',
+        userName: '',
         addressId: '',
         cityId: '',
         selectedAddress: '',
         selectedAddressArr: [],
         addressValue: [],
-        detailAddress: '建设路2号',
-        floor: '20',
+        detailAddress: '',
+        floor: '',
         elevator: true,
         isSetAsDefaultAddress: true,
         companyList: [],
@@ -60,12 +63,17 @@
         showLoading: false,
         loadingText: '获取地理位置中..',
         showAlert: false,
-        alertConent: ''
+        alertConent: '',
+        time1: 120
       }
     },
     mounted: function () {
       this.showLoading = true
       this.getLocation()
+      // this.getWechatOpenId()
+      // console.log(window.location)
+      let openId = 'oxFVVv-WE38ZX29eKCWBCFYklfBE'
+      cookie.set('openId', openId)
     },
     watch: {
       cityId: function (newCityId) {
@@ -270,7 +278,7 @@
           return
         }
         let data = {
-          'userName': '慧生活用户', // 用户名称
+          'userName': this.userName, // 用户名称
           'addressId': this.addressId, // 所在省市的4位数字编码
           'userArea': this.selectedAddress, // 所在区域
           'userAddress': this.detailAddress, // 所在地址
@@ -313,7 +321,9 @@
       Picker,
       PopupRadio,
       Loading,
-      Alert
+      Alert,
+      Countdown,
+      Cell
     }
   }
 </script>>

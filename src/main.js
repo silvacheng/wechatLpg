@@ -18,6 +18,11 @@ router.beforeEach((to, from, next) => {
       next()
     }
   } else {
+    // console.log(window.location.href)
+    // // 获取用户的微信 openId
+    // let currentUrl = window.location.href
+    // let openId = currentUrl.split('?')[1].split('=')[1].split('#')[0]
+    // cookie.set('openId', openId)
     next()
   }
 })

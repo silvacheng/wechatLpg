@@ -7,16 +7,13 @@
     <div class="content">
       <div class="info">
         <div class="phone">
-          <span class="left">联系电话:</span>
-          <span>{{address.mobile}}</span>
+          <div class="left">联系电话:</div>
+          <div class="right">{{address.mobile||address.phone}}</div>
         </div>
         <div class="address">
-          <span class="left">收货地址:</span>
-          <span>{{address.userArea}}{{address.userAddress}}</span>
+          <div class="left">收货地址:</div>
+          <div class="right">{{address.userArea||address.areaName}}{{address.userAddress||address.detailAddress}}</div>
         </div>
-        <!-- <div class="arrow-right">
-          <i class="iconfont enter">&#xe601;</i>
-        </div> -->
       </div>
       <div class="pay">
         <div class="pay-way">
@@ -28,7 +25,15 @@
           <span>送货上门</span>
         </div>
         <div class="receive-time">
-          <datetime v-model="appointmentTime" format="YYYY-MM-DD HH:mm" start-date="2017-10-26" @on-change="selectAppointmentTime" title="预约送达时间" :min-year="minYear" :max-year="maxYear" required></datetime>
+          <datetime v-model="appointmentTime" 
+            format="YYYY-MM-DD HH:mm" 
+            start-date="2017-10-26" 
+            @on-change="selectAppointmentTime" 
+            title="预约送达时间" 
+            :min-year="Number(appointmentTime.substring(0,5))" 
+            :max-year="maxYear" 
+            required>
+          </datetime>
         </div>
         <div class="note">
           <span>配送人员将在预约时间前/后半小时内为您送达</span>
@@ -38,24 +43,27 @@
         </div>
       </div>
       <div class="shop">
-        <div class="shop-name">{{address.deliverDepartmentName}}</div>
+        <div class="shop-name">{{address.deliverDepartmentName||address.departmentName}}</div>
         <div class="good-list" ref="goodWrapper">
           <ul>
             <li class="good" v-for="good in selectGoods"  v-show="good.amount>0">
-              <div class="logo">
-                <img src="../../common/image/LPG_small.png" width="20" height="20">                
+              <div class="good-name">
+                <img class="logo" src="../../common/image/LPG_small.png" width="20" height="20">
+                <span class="name">{{good.gasTypeName}}</span>                
               </div>
-              <div class="good-name">{{good.gasTypeName}}</div>
               <div class="good-price">￥{{good.bottlePrice}}</div>
+              <div class="freight-price" v-show="good.freight&&Number(good.freight)!==0">送气费{{good.freight}}元&nbsp;/&nbsp;瓶</div>
+              <div class="floor-price" v-show="address.elevator==='0'||address.haveElevator===0">楼层费1.00元&nbsp;/&nbsp;层</div>
               <div class="cartcontrol-wrapper">
-                <span>x&nbsp;{{good.amount}}</span>
+                <cartcontrol :good="good" @add="addGood"></cartcontrol>
+                <!-- <span>x&nbsp;{{good.amount}}</span> -->
               </div>
             </li>
           </ul>
         </div>
       </div>
     </div>
-    <div class="shopcart-wrapper" ref="shopcartWrapper">
+    <div class="shopcart-wrapper">
       <shopcart :selectGoods="selectGoods" :address="address" :appointmentTime="appointmentTime" :remarkText="remarkText" ref="shopcart"></shopcart>
     </div>
   </div>
@@ -64,11 +72,12 @@
   import { cookie, Datetime, XInput, dateFormat } from 'vux'
   import { mapGetters } from 'vuex'
   import shopcart from '../shopcart/shopcart.vue'
+  import cartcontrol from '../../base/cartcontrol/cartcontrol.vue'
   import { getDefaultAddressUrl } from '../../api/config'
   export default {
     data () {
       return {
-        appointmentTime: dateFormat(new Date(), 'YYYY-MM-DD HH:mm:ss'),
+        // appointmentTime: '',
         minYear: 2017,
         maxYear: 2099,
         remarkText: '',
@@ -78,18 +87,23 @@
     computed: {
       ...mapGetters({
         selectGoods: 'selectGoods'
-      })
+      }),
+      appointmentTime () {
+        let nowTimeStamp = Date.parse(new Date()) + 30 * 60 * 1000
+        let halfHourDelayTime = dateFormat(new Date(nowTimeStamp), 'YYYY-MM-DD HH:mm:ss')
+        return halfHourDelayTime
+      }
     },
     created () {
       this.getDefaultAddress()
       this.startDate = this.getStartDate()
     },
     methods: {
-//      addGood (target) {
-//        this.$emit('add', target)
-//      },
       back () {
         this.$router.back()
+      },
+      addGood (target) {
+        this.$emit('add', target)
       },
       getStartDate () {
         let date = dateFormat(new Date(), 'YYYY-MM-DD HH:mm:ss')
@@ -97,21 +111,15 @@
         console.log(startDate)
         return startDate
       },
-      // _initScroll () {
-      //   this.goodScroll = new BScroll(this.$refs.goodWrapper, {
-      //     click: true
-      //   })
-      //   this.goodScroll.on('scroll', (pos) => {
-      //     // 去四舍五入后的绝对值
-      //     this.scrollY = Math.abs(Math.round(pos.y))
-      //   })
+      // getAppointmentTime () {
+      //   let nowTimeStamp = Date.parse(new Date()) + 30 * 60 * 1000
+      //   let halfHourDelayTime = dateFormat(new Date(nowTimeStamp), 'YYYY-MM-DD HH:mm:ss')
+      //   return halfHourDelayTime
       // },
-      selectAppointmentTime (val) {
-        console.log('change', val)
+      selectAppointmentTime (newVal) {
+        // console.log('change', val)
+        this.appointmentTime = newVal
       },
-      // selectAddress () {
-      //   this.$router.push('/addressManage')
-      // },
       getDefaultAddress () {
         let data = {
           'userId': this.address.appUserId
@@ -133,7 +141,8 @@
     components: {
       shopcart,
       Datetime,
-      XInput
+      XInput,
+      cartcontrol
     }
   }
 </script>
@@ -160,29 +169,42 @@
     .content
       .info
         background-color #fff
-        margin-top 20px
-        line-height 30px
+        margin-top 15px
+        line-height 24px
         padding 5px 10px
-        font-size 12px
+        font-size 14px
+        font-weight 600
+        .phone, .address
+          display flex 
+          padding 4px 0
+          color #6a6a6a          
+          .left 
+            flex 0 0 70px 
+          .right 
+            flex 1
       .pay
         margin-top 20px
         background-color #fff
         padding 0 10px
-        font-size 12px
+        font-size 14px
         .pay-way, .send-way
           display flex
           justify-content space-between
-          height 30px
-          line-height 30px
+        .pay-way 
+          padding 12px 0
+        .send-way 
+          padding 6px 0 12px 0
+          border-bottom 1px solid #e1e1e1    
         .receive-time
+          padding-top 5px
           .vux-datetime
             padding 10px 0
-            font-size 12px
+            font-size 14px
         .note
-          height 20px
-          line-height 20px
-          color #666
-          font-size 10px
+          padding 6px 0 10px 0
+          color #a4a4a4
+          font-size 12px
+          border-bottom 1px solid #e1e1e1    
         .remark
           .vux-x-input
             padding 10px 0
@@ -190,34 +212,38 @@
         margin-top 20px
         margin-bottom 48px
         .shop-name
-          height 30px
-          line-height 30px
           background-color #fff
-          padding 0 10px
+          color #6a6a6a
+          padding 15px 10px
           font-size 14px
+          border-bottom 1px solid #e1e1e1
       .good-list
-        .title
-          height 20px
-          line-height 20px
-          padding 10px 0 10px 10px
-          background-color #eee
+        background-color #fff
         .good
           padding 15px 10px
           font-size 0
           position relative
           border-bottom 1px solid #e6e6e6
-          display flex
-          align-items center
           font-size 14px
           .good-name
-            margin-left 6px
+            color #747474
+            display flex
+            align-items center
+            .name 
+              font-weight 500
+              margin-left 10px
           .good-price
-            margin-left 6px
-            color red
+            font-weight bold
+            color #f50000
+            margin-top 10px
+            font-size 16px
+          .freight-price, .floor-price  
+            margin-top 8px
+            color #a4a4a4   
           .cartcontrol-wrapper
             position absolute
             right 20px
-            top 20px
+            bottom 20px
             span
               font-size 14px
 

@@ -5,7 +5,7 @@
         <h3>
           <div class="select-address" @click="changeAddress">
             <i class="iconfont left">&#xe60d;</i>
-            <span class="current-address">{{address.userAddress}}</span>
+            <span class="current-address">{{address.userAddress||address.detailAddress}}</span>
             <i class="iconfont right">&#xe601;</i>
           </div>
         </h3>
@@ -14,13 +14,6 @@
         <i class="iconfont">&#xe600;</i>
       </div>
     </div>
-    <!-- <div class="slider-wrapper">
-      <slider>
-        <div v-for="item in imageUrls">
-          <img :src="item">
-        </div>
-      </slider>
-    </div> -->
     <div class="good-list"  ref="goodList">
       <div class="title">
         <img src="../../common/image/LPG_small.png" width="20" height="20">

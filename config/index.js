@@ -8,7 +8,7 @@ module.exports = {
     assetsRoot: path.resolve(__dirname, '../dist'),
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
-    productionSourceMap: true,
+    productionSourceMap: false,
     // Gzip off by default as many popular static hosts such as
     // Surge or Netlify already gzip all static assets for you.
     // Before setting to `true`, make sure to:
@@ -27,8 +27,9 @@ module.exports = {
     autoOpenBrowser: false,
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
+    // proxyTable: {},
     proxyTable: {
-      '/zrds': {	//正式环境跨域请求
+      '/zrds': {	//正式环境跨域请求 
         target: 'http://zrds.zrhsh.cn/',
         changeOrigin: true,
         pathRewrite: {
@@ -36,10 +37,24 @@ module.exports = {
         }
       },
       '/lw': {	//正式环境跨域请求
-        target: 'http://10.10.17.157:8080/',
+        target: 'http://10.10.17.157:8083/',
         changeOrigin: true,
         pathRewrite: {
           '^/lw/': ''
+        }
+      },
+      '/test': {	// 测试环境
+        target: 'http://dstest.zrhsh.cn/',
+        changeOrigin: true,
+        pathRewrite: {
+          '^/test/': ''
+        }
+      },
+      '/weChat': {	// 微信地址
+        target: 'https://open.weixin.qq.com/',
+        changeOrigin: true,
+        pathRewrite: {
+          '^/weChat/': ''
         }
       }
     },
