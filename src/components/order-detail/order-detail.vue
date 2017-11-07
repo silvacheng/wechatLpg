@@ -6,7 +6,9 @@
     </div>
     <div class="order-state">
       <div class="left">{{orderStateDesc}}</div>
-      <div class="right"></div>
+      <div class="right">
+        <img :src="imageSrc" alt="" width="42" height="36">
+      </div>
     </div>
     <div class="basic-info">
       <div class="phone">
@@ -105,6 +107,23 @@
           num += goodArr[i].amount
         }
         return num
+      },
+      imageSrc () {
+        let state = this.orderDetail.orderState
+        let desc
+        // console.log(state) ../../common/image/cancel_order.png
+        if (state === '2') {
+          desc = require('../../common/image/wait_send.png')
+        } else if (state === '3') {
+          desc = require('../../common/image/wait_receive.png')
+        } else if (state === '4') {
+          desc = require('../../common/image/succeed_order.png')
+        } else if (state === '5') {
+          desc = require('../../common/image/closed_order.png')
+        } else if (state === '6') {
+          desc = require('../../common/image/cancel_order.png')
+        }
+        return desc
       }
     },
     methods: {
@@ -135,13 +154,16 @@
     .order-state
       color #38d164 
       font-size 24px
-      padding 25px 0
+      height 74px
       display flex 
+      align-items center
       .left 
         flex 1
         text-align center
       .right 
-        flex 1  
+        flex 1
+        text-align center
+          
     .basic-info 
       padding 10px 15px
       color #6a6a6a

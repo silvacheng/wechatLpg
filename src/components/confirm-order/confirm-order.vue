@@ -111,11 +111,6 @@
         console.log(startDate)
         return startDate
       },
-      // getAppointmentTime () {
-      //   let nowTimeStamp = Date.parse(new Date()) + 30 * 60 * 1000
-      //   let halfHourDelayTime = dateFormat(new Date(nowTimeStamp), 'YYYY-MM-DD HH:mm:ss')
-      //   return halfHourDelayTime
-      // },
       selectAppointmentTime (newVal) {
         // console.log('change', val)
         this.appointmentTime = newVal
@@ -169,9 +164,9 @@
     .content
       .info
         background-color #fff
-        margin-top 15px
+        margin-top 10px
         line-height 24px
-        padding 5px 10px
+        padding 5px 15px
         font-size 14px
         font-weight 600
         .phone, .address
@@ -183,9 +178,9 @@
           .right 
             flex 1
       .pay
-        margin-top 20px
+        margin-top 10px
         background-color #fff
-        padding 0 10px
+        padding 0 15px
         font-size 14px
         .pay-way, .send-way
           display flex
@@ -209,13 +204,16 @@
           .vux-x-input
             padding 10px 0
       .shop
-        margin-top 20px
+        margin-top 10px
         margin-bottom 48px
+        padding 0 15px
+        background-color #fff
         .shop-name
           background-color #fff
           color #6a6a6a
-          padding 15px 10px
-          font-size 14px
+          padding 10px 0
+          font-size 16px
+          font-weight 600
           border-bottom 1px solid #e1e1e1
       .good-list
         background-color #fff

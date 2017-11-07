@@ -146,26 +146,14 @@
           this.$router.push('/confirmOrder')
         } else { // 提交订单
           let userInfo = this.address
-          let selectFoodStr = JSON.stringify(this.selectGoods)
-          // let deliverAddress = ''
-          // let deliverCompanyId = ''
-          // let deliverDepartmentId = ''
-          // let elevator = ''
-          // let floor = ''
-          // if (userInfo.userArea && userInfo.userAddress) {
-          //   deliverAddress = userInfo.userArea + userInfo.userAddress
-          //   deliverCompanyId = userInfo.orgCode
-          //   deliverDepartmentId = userInfo.departmentCode
-          //   elevator = userInfo.haveElevator
-          //   floor = userInfo.floorLevel
-          // } else {
-          //   deliverAddress = userInfo.areaName + userInfo.detailAddress
-          //   deliverCompanyId = userInfo.deliverCompanyId
-          //   deliverDepartmentId = userInfo.deliverDepartmentId
-          //   elevator = userInfo.elevator
-          //   floor = userInfo.floor
-          // }
-
+          let goodArr = []
+          // 过滤掉  个数为0的good
+          goodArr = this.selectGoods.filter(function (currentValue, index) {
+            console.log(currentValue, index)
+            return currentValue.amount > 0
+          })
+          let selectFoodStr = JSON.stringify(goodArr)
+          // console.log(goodArr)
           let data = {
             'userId': cookie.get('appUserId'), // appUserId
             'userCode': cookie.get('orderGasNo'), // 订气编号
@@ -248,10 +236,12 @@
     .content
       display flex
       background #141d27
+      // background #fff
       font-size 0
       height 48px
       line-height 48px
-      color rgba(255, 255, 255, 0.4)
+      color rgba(255, 255, 255, 0.4) 
+      // color #6a6a6a
       .content-left
         flex 1
         flex-direction row-reverse
@@ -260,7 +250,8 @@
         .top,.bottom
           height 20px 
           line-height 20px
-          font-size 14px             
+          font-size 14px
+          font-weight 600             
           .red
             color #f96363
           .remark 

@@ -13,16 +13,11 @@ export function hasClass (el, className) {
   return reg.test(el.className)
 }
 
-// export function datePlusHalfHour () {
-//   let timeStamp = Date.parse(new Date()) + 30 * 60 * 1000
-//   let time = new Date(timeStamp)
-//   let year = time.getFullYear
-//   let month = time.getMonth() + 1
-//   let day = time.getDay()
-//   let hour = time.getHours()
-//   let minute = time.getMinutes()
-//   let second = time.getSeconds()
-//   let timeStr = ''
-//   timeStr = year + '-' + month + '-' + day 
-//   return timeStr
-// }
+export function param (data) {
+  let url = ''
+  for (var k in data) {
+    let value = data[k] !== undefined ? data[k] : ''
+    url += '&' + k + '=' + encodeURIComponent(value)
+  }
+  return url ? url.substring(1) : ''
+}

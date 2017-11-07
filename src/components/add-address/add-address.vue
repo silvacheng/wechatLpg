@@ -7,10 +7,19 @@
     <div class="content">
       <group class="content-wrapper" label-width="5em" label-align="left">
         <x-input title="姓名" name="userName" placeholder="请输入姓名" is-type="china-name" v-model="userName" required></x-input>        
-        <x-input title="联系方式" name="mobile" placeholder="请输入手机号码" keyboard="number" is-type="china-mobile" :max="11" v-model="phone" required></x-input>
-        <cell title="倒计时">
-          <countdown v-model="time1"></countdown>
-        </cell>
+        <x-input 
+          title="联系方式" 
+          name="mobile" 
+          placeholder="请输入手机号码" 
+          keyboard="number" 
+          is-type="china-mobile" 
+          :max="11" v-model="phone" 
+          @on-blur="checkUser"  
+          @on-change="hiddenVerify" 
+          required>
+        </x-input>
+        <x-button v-show="needVerifyCode" :type="verifyCodeType" class="verifyCode" mini @click.native="getVerifyCode">{{deadLine}}</x-button>
+        <x-input v-show="needVerifyCode" title="验证码" name="verifyCode" placeholder="请输入验证码" keyboard="number" :max="4" v-model="verifyCode" required></x-input>
         <x-address title="所在地区" v-model="addressValue" :list="addressData" @on-shadow-change="onShadowChange" ref="xAddress" raw-value></x-address>
         <x-input title="详细地址" placeholder="请输入详细地址" v-model="detailAddress" required></x-input>
         <x-input title="楼层" placeholder="请输入楼层" v-model="floor" type="number" required>楼层</x-input>
@@ -18,8 +27,8 @@
       </group>
     </div>
     <div class="company">
-      <popup-radio title="公司名称" :options="companyList" v-model="companyValue"></popup-radio>
-      <popup-radio title="门店选择" :options="shopList" v-model="shopValue"></popup-radio>
+      <popup-radio title="公司名称" :options="companyList" v-model="companyValue" class="popup-radio"></popup-radio>
+      <popup-radio title="门店选择" :options="shopList" v-model="shopValue" class="popup-radio"></popup-radio>
     </div>
     <div class="default">
       <x-switch title="设为默认" @on-click="setDefaultAddress" v-model="isSetAsDefaultAddress"></x-switch>
@@ -32,9 +41,10 @@
   </div>
 </template>
 <script type="text/ECMAScript-6">
-  import { Group, XButton, XInput, XSwitch, XAddress, Picker, PopupRadio, ChinaAddressV3Data, cookie, Loading, Alert, Countdown, Cell } from 'vux'
+  import { Group, XButton, XInput, XSwitch, XAddress, Picker, PopupRadio, ChinaAddressV3Data, cookie, Loading, Alert } from 'vux'
   import BMap from 'BMap'
-  import { getGasCompanyUrl, getGasShopUrl, saveLpgUserInfoUrl } from '../../api/config'
+  import { getGasCompanyUrl, getGasShopUrl, saveLpgUserInfoUrl, getVerifyCodeUrlTest, checkUserTest } from '../../api/config'
+  import { param } from '../../common/js/dom'
   export default {
     data () {
       return {
@@ -64,14 +74,19 @@
         loadingText: '获取地理位置中..',
         showAlert: false,
         alertConent: '',
-        time1: 120
+        deadLine: '获取验证码',
+        countDownStart: false,
+        verifyCode: '',
+        verifyCodeType: 'primary',
+        verifyCodeSwitch: false,
+        needVerifyCode: false
       }
     },
     mounted: function () {
       this.showLoading = true
       this.getLocation()
       // this.getWechatOpenId()
-      // console.log(window.location)
+      // console.log(window.location.href)
       let openId = 'oxFVVv-WE38ZX29eKCWBCFYklfBE'
       cookie.set('openId', openId)
     },
@@ -277,7 +292,15 @@
           this.showAlert = true
           return
         }
+
+        if (this.verifyCode.length !== 4 && this.needVerifyCode === true) { // 需要输入验证码
+          this.alertConent = '请输入正确的验证码'
+          this.showAlert = true
+          return
+        }
+
         let data = {
+          'openId': 'oxFVVv-WE38ZX29eKCWBCFYklfBE',
           'userName': this.userName, // 用户名称
           'addressId': this.addressId, // 所在省市的4位数字编码
           'userArea': this.selectedAddress, // 所在区域
@@ -289,8 +312,9 @@
           'deliverDepartmentId': this.shopOrgCode, // 送气门店Id
           'deliverDepartmentName': this.shopValue, // 送气门店名称
           'mobile': this.phone, // 手机
-          'isLpgDefault': '1', // LPG订气默认收货地址(1:为LPG地址2:为电商地址)
-          'isDefault': this.isSetAsDefaultAddress === false ? '0' : '1' // 是否设置为默认地址
+          'smsCode': this.verifyCode.length === 4 ? this.verifyCode : '00000', // 验证码
+          // 'isLpgDefault': '1', // LPG订气默认收货地址(1:为LPG地址2:为电商地址)
+          'isDefault': this.isSetAsDefaultAddress === false ? '1' : '2' // 是否设置为默认地址
         }
         console.log(data)
         this.showLoading = true
@@ -310,6 +334,89 @@
             this.showAlert = true
           }
         })
+      },
+      checkUser () {
+        let MOBILE_REG = /^1[345678]\d{9}$/g
+        if (this.phone.length !== 11 || !(MOBILE_REG.test(this.phone))) {
+          return
+        }
+        let data = {
+          'mobile': this.phone,
+          'userId': 123456
+        }
+        let url = checkUserTest + '?' + param(data)
+        this.$http.post(url, {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        }).then((res) => {
+          if (res.data.status === '1') {
+            this.needVerifyCode = true
+          } else {
+            this.needVerifyCode = false
+          }
+        })
+      },
+      hiddenVerify () { // 退格时 清除验证码发送按钮
+        if (this.phone.length !== 11 && this.needVerifyCode === true) {
+          this.needVerifyCode = false
+        }
+      },
+      getVerifyCode () { // 获取验证码
+        let MOBILE_REG = /^1[345678]\d{9}$/g
+        if (this.phone === '') {
+          this.alertConent = '请输入手机号'
+          this.showAlert = true
+          return
+        } else if (this.phone && !(MOBILE_REG.test(this.phone))) {
+          this.alertConent = '请输入正确的手机号'
+          this.showAlert = true
+          return
+        }
+        // 防止重复点击
+        if (this.verifyCodeSwitch) {
+          return
+        }
+        this.verifyCodeSwitch = true
+        this.verifyCodeType = 'default'
+        this.deadLine = '120s'
+        let timer = null
+        let num = 120
+        let _this = this
+        clearInterval(timer)
+        timer = setInterval(function () {
+          num--
+          if (num === 0) {
+            _this.verifyCodeType = 'primary'
+            _this.deadLine = '获取验证码'
+            _this.verifyCodeSwitch = false
+            clearInterval(timer)
+          } else {
+            _this.deadLine = num + 's'
+          }
+        }, 1000)
+        let data = {
+          'clientfrom': '1',
+          'macAddr': '',
+          'mobile': this.phone,
+          'picCode': '',
+          'picRandom': '',
+          'sendfrom': '1',
+          'useFor': 'register2',
+          'ZRapp_version': '1.5.7',
+          'app_version': '1.5.7',
+          'appType': '1',
+          'isAndroid': ''
+        }
+        // console.log(this.$http)
+        let url = getVerifyCodeUrlTest + '?' + param(data)
+        this.$http.post(url, {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        }).then((res) => {
+          console.log(res.data)
+        })
       }
     },
     components: {
@@ -321,9 +428,7 @@
       Picker,
       PopupRadio,
       Loading,
-      Alert,
-      Countdown,
-      Cell
+      Alert
     }
   }
 </script>>
@@ -348,19 +453,26 @@
         font-weight bold
     .content
       line-height 20px
-      margin-top 20px
+      margin-top 10px
       padding 0 5px
       background-color #fff
       overflow hidden
       .content-wrapper
-        margin-top -1.3em
+        margin-top -21px
+        position relative
+        .verifyCode 
+          position absolute
+          right 15px
+          top 52px
     .company
-      margin-top 20px
+      margin-top 10px
       padding 0 5px
       background-color #fff
       border 1px solid #eee
+      .popup-radio 
+        padding 15px
     .default
-      margin-top 20px
+      margin-top 10px
       padding 5px
       background-color #fff
       border 1px solid #eee

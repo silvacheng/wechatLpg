@@ -92,12 +92,10 @@
     created () {
       // 获取订单列表
       this.getOrderList()
-      // console.log(document.body.clientHeight)
-      // console.log(this.$refs)
     },
     watch: {
       selectOrderState (newState) {
-        console.log('当前选择的状态为：' + newState)
+        // console.log('当前选择的状态为：' + newState)
         if (newState === 'all') {
           if (this.totalOrder.length > 0) { // 全部订单
             this.showEmpty = false
@@ -151,7 +149,7 @@
         this.$http.post(getGasOrderUrl, JSON.stringify(data)).then((res) => {
           if (res.data.status === '1' && res.data.data.length > 0) {
             let orders = res.data.data
-            console.log(orders)
+            // console.log(orders)
             this.totalOrder = orders.reverse()
             this.showEmpty = false
             this.showLoading = false
