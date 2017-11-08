@@ -51,7 +51,8 @@
     },
     created () {
       let data = {
-        orderGasNo: cookie.get('orderGasNo')
+        orderGasNo: cookie.get('orderGasNo'),
+        openId: cookie.get('openId')
       }
       this.$http.post(getGasListUrl, JSON.stringify(data)).then((res) => {
         // console.log(res.data.data)

@@ -5,7 +5,7 @@
       <h3 class="title">添加新地址</h3>
     </div>
     <div class="content">
-      <group class="content-wrapper" label-width="5em" label-align="left">
+      <group class="content-wrapper" label-width="6em" label-align="left">
         <x-input title="姓名" name="userName" placeholder="请输入姓名" is-type="china-name" v-model="userName" required></x-input>        
         <x-input 
           title="联系方式" 
@@ -13,13 +13,28 @@
           placeholder="请输入手机号码" 
           keyboard="number" 
           is-type="china-mobile" 
-          :max="11" v-model="phone" 
+          :max="11" 
+          v-model="phone" 
           @on-blur="checkUser"  
           @on-change="hiddenVerify" 
           required>
         </x-input>
+        <x-input 
+          v-show="showAuthcode" 
+          title="图形验证码" 
+          placeholder="请输入右侧数字" 
+          keyboard="number"  
+          v-model="imgRandCode"
+          @on-change="getSmsCode"
+          type="number" 
+          :max="4"
+          required 
+        ></x-input>        
         <x-button v-show="needVerifyCode" :type="verifyCodeType" class="verifyCode" mini @click.native="getVerifyCode">{{deadLine}}</x-button>
-        <x-input v-show="needVerifyCode" title="验证码" name="verifyCode" placeholder="请输入验证码" keyboard="number" :max="4" v-model="verifyCode" required></x-input>
+        <div class="authcode" v-show="showAuthcode" @click="getAuthCode">
+          <img :src="imgRandSrc" style="max-width:100%">
+        </div>
+        <x-input v-show="needVerifyCode" title="验证码" name="verifyCode" placeholder="请输入手机验证码" keyboard="number" :max="4" v-model="verifyCode" required></x-input>
         <x-address title="所在地区" v-model="addressValue" :list="addressData" @on-shadow-change="onShadowChange" ref="xAddress" raw-value></x-address>
         <x-input title="详细地址" placeholder="请输入详细地址" v-model="detailAddress" required></x-input>
         <x-input title="楼层" placeholder="请输入楼层" v-model="floor" type="number" required>楼层</x-input>
@@ -37,13 +52,13 @@
       <x-button type="primary">保存</x-button>
     </div>
     <Loading class="loading" :text="loadingText" :show="showLoading"></Loading>
-    <alert v-model="showAlert" title="提示" :content="alertConent"></alert> 
+    <alert v-model="showAlert" title="提示" :content="alertConent"></alert>
   </div>
 </template>
 <script type="text/ECMAScript-6">
-  import { Group, XButton, XInput, XSwitch, XAddress, Picker, PopupRadio, ChinaAddressV3Data, cookie, Loading, Alert } from 'vux'
+  import { Group, XButton, XInput, XSwitch, XAddress, Picker, PopupRadio, ChinaAddressV3Data, cookie, Loading, Alert, XDialog } from 'vux'
   import BMap from 'BMap'
-  import { getGasCompanyUrl, getGasShopUrl, saveLpgUserInfoUrl, getVerifyCodeUrlTest, checkUserTest } from '../../api/config'
+  import { getGasCompanyUrl, getGasShopUrl, saveLpgUserInfoUrl, getVerifyCodeUrlTest, checkUserTest, getVerifyPicTest } from '../../api/config'
   import { param } from '../../common/js/dom'
   export default {
     data () {
@@ -51,6 +66,7 @@
         addressData: ChinaAddressV3Data,
         phone: '',
         userName: '',
+        userId: '',
         addressId: '',
         cityId: '',
         selectedAddress: '',
@@ -74,12 +90,16 @@
         loadingText: '获取地理位置中..',
         showAlert: false,
         alertConent: '',
-        deadLine: '获取验证码',
-        countDownStart: false,
-        verifyCode: '',
-        verifyCodeType: 'primary',
-        verifyCodeSwitch: false,
-        needVerifyCode: false
+        deadLine: '10s',
+        verifyCode: '', // 短信验证码
+        verifyCodeType: 'default', // 获取验证码按钮的class类型
+        verifyCodeSwitch: false, // 防止重复点击 发送验证码
+        needVerifyCode: false, // 是否需要短信验证码
+        needAuthCode: false, // 是否需要短信验证码
+        imgRandSrc: '', // 图形验证码地址
+        imgRandCode: '', // 图形验证码
+        showAuthcode: false, // 显示图形验证码弹框
+        timer: null // 定时器
       }
     },
     mounted: function () {
@@ -87,8 +107,8 @@
       this.getLocation()
       // this.getWechatOpenId()
       // console.log(window.location.href)
-      let openId = 'oxFVVv-WE38ZX29eKCWBCFYklfBE'
-      cookie.set('openId', openId)
+      // let openId = 'oxFVVv-WE38ZX29eKCWBCFYklfBE'
+      // cookie.set('openId', openId)
     },
     watch: {
       cityId: function (newCityId) {
@@ -143,12 +163,14 @@
         // console.log('新的店铺:' + this.shopOrgName)
         // console.log('新的店铺Id:' + this.shopId)
         // console.log('新的店铺:' + this.shopOrgCode)
+      },
+      showAlert: function (newValue) { // 清空输入的图形验证码
+        if (newValue === true && this.needAuthCode === true) {
+          this.imgRandCode = ''
+        }
       }
     },
     methods: {
-      back () {
-        this.$router.back()
-      },
       onShadowChange (ids, names) {
         this.addressId = ids[2]
         this.cityId = ids[1].substring(0, 4)
@@ -158,12 +180,12 @@
       hasElevator (newVal, oldVal) {
         setTimeout(() => {
           this.elevator = newVal
-        }, 500)
+        }, 300)
       },
       setDefaultAddress (newVal, oldVal) {
         setTimeout(() => {
           this.setdefault = newVal
-        }, 500)
+        }, 300)
       },
       getLocationByBaiduMap (point) {
         let _this = this
@@ -316,6 +338,10 @@
           // 'isLpgDefault': '1', // LPG订气默认收货地址(1:为LPG地址2:为电商地址)
           'isDefault': this.isSetAsDefaultAddress === false ? '1' : '2' // 是否设置为默认地址
         }
+        // 判断是否需要传userId针对需要验证码的用户不需要传
+        if (!this.needVerifyCode) { // 已是慧生活用户
+          data.userId = this.userId
+        }
         console.log(data)
         this.showLoading = true
         this.$http.post(saveLpgUserInfoUrl, JSON.stringify(data)).then((res) => {
@@ -350,19 +376,57 @@
             'Content-Type': 'application/x-www-form-urlencoded'
           }
         }).then((res) => {
-          if (res.data.status === '1') {
-            this.needVerifyCode = true
-          } else {
-            this.needVerifyCode = false
+          if (res.data.status === '1') { // 非慧生活用户
+            this.needAuthCode = true
+            this.getAuthCode() // 获取验证图片
+          } else if (res.data.status === '0') { // 慧生活用户
+            this.userId = res.data.userId
+            this.needAuthCode = false
           }
         })
       },
+      getAuthCode () { // 获取图形验证码
+        this.imgRandCode = ''
+        this.imgRandSrc = getVerifyPicTest + '?flag=' + this.phone + '&time=' + Date.parse(new Date())
+        if (this.showAuthcode) {
+          return
+        }
+        this.showAuthcode = true
+      },
+      getSmsCode () {
+        if (this.imgRandCode === '') { // 验证码为空
+          return
+        }
+        if (this.imgRandCode && this.imgRandCode.length !== 4) { // 输入的图形验证码不正确
+          return
+        }
+        if (this.verifyCodeSwitch) { // 正在获取手机验证码
+          return
+        }
+        this.getVerifyCode()
+      },
       hiddenVerify () { // 退格时 清除验证码发送按钮
+        if (this.needAuthCode) {
+          this.needAuthCode = false
+          this.showAuthcode = false
+        }
+        if (this.needVerifyCode) { // 清空验证码
+          this.imgRandSrc = ''
+          this.imgRandCode = ''
+          clearInterval(this.timer)
+          this.deadLine = '10s'
+          this.needVerifyCode = false
+          this.verifyCodeSwitch = false
+        }
         if (this.phone.length !== 11 && this.needVerifyCode === true) {
           this.needVerifyCode = false
+          this.userId = ''
         }
       },
-      getVerifyCode () { // 获取验证码
+      getVerifyCode () { // 获取短信验证码
+        if (this.verifyCodeSwitch) {
+          return
+        }
         let MOBILE_REG = /^1[345678]\d{9}$/g
         if (this.phone === '') {
           this.alertConent = '请输入手机号'
@@ -373,28 +437,6 @@
           this.showAlert = true
           return
         }
-        // 防止重复点击
-        if (this.verifyCodeSwitch) {
-          return
-        }
-        this.verifyCodeSwitch = true
-        this.verifyCodeType = 'default'
-        this.deadLine = '120s'
-        let timer = null
-        let num = 120
-        let _this = this
-        clearInterval(timer)
-        timer = setInterval(function () {
-          num--
-          if (num === 0) {
-            _this.verifyCodeType = 'primary'
-            _this.deadLine = '获取验证码'
-            _this.verifyCodeSwitch = false
-            clearInterval(timer)
-          } else {
-            _this.deadLine = num + 's'
-          }
-        }, 1000)
         let data = {
           'clientfrom': '1',
           'macAddr': '',
@@ -406,17 +448,49 @@
           'ZRapp_version': '1.5.7',
           'app_version': '1.5.7',
           'appType': '1',
-          'isAndroid': ''
+          'isAndroid': '',
+          'codeKey': this.phone,
+          'codeKeyValue': this.imgRandCode
         }
-        // console.log(this.$http)
+
         let url = getVerifyCodeUrlTest + '?' + param(data)
         this.$http.post(url, {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
           }
         }).then((res) => {
-          console.log(res.data)
+          if (res.data.status === '1') { // 发送验证码了
+            this.needVerifyCode = true
+            this.showAuthcode = false
+            this.countDown()
+          } else { // 不发送验证码
+            this.alertConent = res.data.message
+            this.showAlert = true
+            // this.verifyCodeSwitch = false
+          }
         })
+      },
+      countDown () { // 倒计时
+        // 防止重复点击
+        if (this.verifyCodeSwitch) {
+          return
+        }
+        this.verifyCodeSwitch = true
+        this.verifyCodeType = 'default'
+        let num = 10
+        clearInterval(this.timer)
+        let _this = this
+        this.timer = setInterval(function () {
+          num--
+          if (num === 0) {
+            _this.verifyCodeType = 'primary'
+            _this.deadLine = '重新获取'
+            _this.verifyCodeSwitch = false
+            clearInterval(_this.timer)
+          } else {
+            _this.deadLine = num + 's'
+          }
+        }, 1000)
       }
     },
     components: {
@@ -428,7 +502,8 @@
       Picker,
       PopupRadio,
       Loading,
-      Alert
+      Alert,
+      XDialog
     }
   }
 </script>>
@@ -453,7 +528,7 @@
         font-weight bold
     .content
       line-height 20px
-      margin-top 10px
+      margin-top 20px
       padding 0 5px
       background-color #fff
       overflow hidden
@@ -463,7 +538,16 @@
         .verifyCode 
           position absolute
           right 15px
-          top 52px
+          top 96px
+          z-index 9999
+        .authcode 
+          position absolute 
+          right 15px 
+          top 97px
+          display flex 
+          align-items center
+          span  
+            color skyblue
     .company
       margin-top 10px
       padding 0 5px

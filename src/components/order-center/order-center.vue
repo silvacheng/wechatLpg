@@ -141,9 +141,9 @@
       },
       getOrderList () {
         this.showLoading = true
-        let orderGasNo = cookie.get('orderGasNo')
         let data = {
-          'orderGasNo': orderGasNo
+          'orderGasNo': cookie.get('orderGasNo'),
+          'openId': cookie.get('openId')
         }
         // console.log(data)
         this.$http.post(getGasOrderUrl, JSON.stringify(data)).then((res) => {

@@ -117,7 +117,8 @@
       },
       getDefaultAddress () {
         let data = {
-          'userId': this.address.appUserId
+          'userId': this.address.appUserId,
+          'openId': cookie.get('openId')
         }
         let _this = this
         this.$http.post(getDefaultAddressUrl, JSON.stringify(data)).then((res) => {

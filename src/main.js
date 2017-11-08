@@ -11,7 +11,7 @@ import { AjaxPlugin, cookie } from 'vux'
 Vue.use(AjaxPlugin)
 Vue.use(VueRouter)
 router.beforeEach((to, from, next) => {
-  if (cookie.get('defaultAddress')) {
+  if (cookie.get('openId')) {
     if (to.path === '/') {
       next({path: '/lpgShop'})
     } else {

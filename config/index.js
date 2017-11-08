@@ -37,7 +37,7 @@ module.exports = {
         }
       },
       '/lw': {	//正式环境跨域请求
-        target: 'http://10.10.17.157:8080/',
+        target: 'http://10.10.17.157:8083/',
         changeOrigin: true,
         pathRewrite: {
           '^/lw/': ''

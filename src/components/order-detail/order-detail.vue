@@ -111,7 +111,6 @@
       imageSrc () {
         let state = this.orderDetail.orderState
         let desc
-        // console.log(state) ../../common/image/cancel_order.png
         if (state === '2') {
           desc = require('../../common/image/wait_send.png')
         } else if (state === '3') {

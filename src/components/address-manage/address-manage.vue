@@ -6,12 +6,12 @@
     </div>
     <div class="content">
       <ul class="address-list">
-        <li class="item" v-for="item in addressList" :class="item.isLpgDefault===1?'default':''">
+        <li class="item" v-for="item in addressList" :class="item.isDefault===2?'default':''">
           <div class="info" :class="item.isLpgDefault===2?'default':''" @click="selectAddress(item)">
             <div class="info-detail">
               <div class="top">
                 <div class="left">联系电话:</div>
-                <div class="right">{{item.phone}}</div> 
+                <div class="right">{{item.mobile}}</div> 
               </div>
               <div class="bottom">
                 <div class="left">收货地址:</div>
@@ -96,7 +96,8 @@
       },
       getAddressList () { // 获取地址信息
         let data = {
-          'userId': this.address.appUserId ? this.address.appUserId : this.address.userId
+          'openId': this.address.openId,
+          'userid': this.address.appUserId ? this.address.appUserId : this.address.userId
         }
         this.$http.post(getAddressListUrl, JSON.stringify(data)).then((res) => {
           this.showLoading = false
@@ -145,8 +146,9 @@
       onConfirmSure () { // 确认删除
         this.showConfirm = false
         let data = {
-          id: this.operateAddressId,
-          userId: this.userId
+          'id': this.operateAddressId,
+          'userid': this.userId,
+          'openId': cookie.get('openId')
         }
         let _this = this
         if (this.confirmTitle === '确定删除此地址？') { // 删除地址

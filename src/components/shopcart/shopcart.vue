@@ -155,6 +155,7 @@
           let selectFoodStr = JSON.stringify(goodArr)
           // console.log(goodArr)
           let data = {
+            'openId': cookie.get('openId'),
             'userId': cookie.get('appUserId'), // appUserId
             'userCode': cookie.get('orderGasNo'), // 订气编号
             // 'orderGasNo': cookie.get('orderGasNo'), // 订气编号
