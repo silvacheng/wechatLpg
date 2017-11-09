@@ -29,13 +29,13 @@ module.exports = {
     assetsPublicPath: '/',
     // proxyTable: {},
     proxyTable: {
-      '/zrds': {	//正式环境跨域请求 
-        target: 'http://zrds.zrhsh.cn/',
-        changeOrigin: true,
-        pathRewrite: {
-          '^/zrds/': ''
-        }
-      },
+      // '/zrds': {	//正式环境跨域请求 
+      //   target: 'http://zrds.zrhsh.cn/',
+      //   changeOrigin: true,
+      //   pathRewrite: {
+      //     '^/zrds/': ''
+      //   }
+      // },
       '/lw': {	//正式环境跨域请求
         target: 'http://10.10.17.157:8083/',
         changeOrigin: true,

@@ -77,7 +77,6 @@
   export default {
     data () {
       return {
-        // appointmentTime: '',
         minYear: 2017,
         maxYear: 2099,
         remarkText: '',
@@ -95,7 +94,9 @@
       }
     },
     created () {
-      this.getDefaultAddress()
+      if (!cookie.get('defaultAddress')) {
+        this.getDefaultAddress()
+      }
       this.startDate = this.getStartDate()
     },
     methods: {
@@ -112,13 +113,12 @@
         return startDate
       },
       selectAppointmentTime (newVal) {
-        // console.log('change', val)
         this.appointmentTime = newVal
       },
       getDefaultAddress () {
         let data = {
-          'userId': this.address.appUserId,
-          'openId': cookie.get('openId')
+          'userId': cookie.get('defaultAddress'),
+          'openId': this.address.openId
         }
         let _this = this
         this.$http.post(getDefaultAddressUrl, JSON.stringify(data)).then((res) => {

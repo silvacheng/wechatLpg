@@ -13,7 +13,4 @@ export default {
 <style scoped rel="stylesheet/style">
   @import "common/css/reset.css";
   @import "common/css/iconfont.css";
-  /* #app{
-    height:100%;
-  } */
 </style>

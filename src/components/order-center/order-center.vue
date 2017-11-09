@@ -51,6 +51,7 @@
             <div class="operate">
               <span @click="deleteOrder(order)" v-show="order.orderState==='6'">删除订单</span>
               <span @click="cancelOrder(order)" v-show="order.orderState==='2'">取消订单</span>
+              <span @click="contractOrder(order)" v-show="order.orderState==='3'">联系送气工</span>
             </div>
           </li>                   
         </ul>
@@ -176,6 +177,11 @@
         this.showConfirm = true
       },
       deleteOrder (order) { // 删除订单
+        this.currentOperateOrder = order
+        this.confirmTitle = '确定删除此订单？'
+        this.showConfirm = true
+      },
+      contractOrder (order) { // 删除订单
         this.currentOperateOrder = order
         this.confirmTitle = '确定删除此订单？'
         this.showConfirm = true

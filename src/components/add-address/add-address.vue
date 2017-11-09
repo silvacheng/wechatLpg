@@ -1,7 +1,6 @@
 <template>
   <div class="add-address">
     <div class="header">
-      <!-- <i class="iconfont back" @click="back">&#xe603;</i> -->
       <h3 class="title">添加新地址</h3>
     </div>
     <div class="content">
@@ -67,6 +66,7 @@
         phone: '',
         userName: '',
         userId: '',
+        openId: '',
         addressId: '',
         cityId: '',
         selectedAddress: '',
@@ -87,10 +87,10 @@
         shopId: '',
         shopOrgCode: '',
         showLoading: false,
-        loadingText: '获取地理位置中..',
+        loadingText: '获取地理位置中',
         showAlert: false,
         alertConent: '',
-        deadLine: '10s',
+        deadLine: '120s',
         verifyCode: '', // 短信验证码
         verifyCodeType: 'default', // 获取验证码按钮的class类型
         verifyCodeSwitch: false, // 防止重复点击 发送验证码
@@ -105,14 +105,13 @@
     mounted: function () {
       this.showLoading = true
       this.getLocation()
-      // this.getWechatOpenId()
-      // console.log(window.location.href)
-      // let openId = 'oxFVVv-WE38ZX29eKCWBCFYklfBE'
-      // cookie.set('openId', openId)
+      let openIdString = window.location.href
+      // console.log(openIdString)
+      // 通过字符串截取获取openId
+      this.openId = openIdString.split('?')[1].split('#/')[0].split('=')[1]
     },
     watch: {
       cityId: function (newCityId) {
-        // console.log('新的城市id:' + newCityId)
         this.companyList = []
         this.companyData = []
         this.companyValue = ''
@@ -126,7 +125,6 @@
         this.getGasCompany(newCityId)
       },
       companyId: function (newCompanyId) {
-        // console.log('新的公司id:' + newCompanyId)
         if (newCompanyId === '') {
           return
         }
@@ -163,11 +161,6 @@
         // console.log('新的店铺:' + this.shopOrgName)
         // console.log('新的店铺Id:' + this.shopId)
         // console.log('新的店铺:' + this.shopOrgCode)
-      },
-      showAlert: function (newValue) { // 清空输入的图形验证码
-        if (newValue === true && this.needAuthCode === true) {
-          this.imgRandCode = ''
-        }
       }
     },
     methods: {
@@ -322,20 +315,19 @@
         }
 
         let data = {
-          'openId': 'oxFVVv-WE38ZX29eKCWBCFYklfBE',
+          'openId': this.openId,
           'userName': this.userName, // 用户名称
           'addressId': this.addressId, // 所在省市的4位数字编码
           'userArea': this.selectedAddress, // 所在区域
           'userAddress': this.detailAddress, // 所在地址
           'elevator': this.elevator === false ? '0' : '1', // 是否有电梯 0无1有
-          'floor': this.floor, // 楼层
+          'floor': Number(this.floor), // 楼层
           'deliverCompanyId': this.companyOrgId, // 送气公司Id
           'deliverCompanyName': this.companyValue, // 送气公司名称
           'deliverDepartmentId': this.shopOrgCode, // 送气门店Id
           'deliverDepartmentName': this.shopValue, // 送气门店名称
           'mobile': this.phone, // 手机
           'smsCode': this.verifyCode.length === 4 ? this.verifyCode : '00000', // 验证码
-          // 'isLpgDefault': '1', // LPG订气默认收货地址(1:为LPG地址2:为电商地址)
           'isDefault': this.isSetAsDefaultAddress === false ? '1' : '2' // 是否设置为默认地址
         }
         // 判断是否需要传userId针对需要验证码的用户不需要传
@@ -347,11 +339,12 @@
         this.$http.post(saveLpgUserInfoUrl, JSON.stringify(data)).then((res) => {
           console.log(res.data)
           if (res.data.status === '1') {
-            data.orderGasNo = res.data.msg.orderGasNo
-            data.appUserId = res.data.msg.appUserId
+            // data.orderGasNo = res.data.msg.orderGasNo
+            // data.appUserId = res.data.msg.appUserId
             cookie.set('defaultAddress', JSON.stringify(data))
             cookie.set('orderGasNo', res.data.msg.orderGasNo)
             cookie.set('appUserId', res.data.msg.appUserId)
+            cookie.set('openId', res.data.msg.openId)
             this.showLoading = false
             this.$router.push('/lpgshop')
           } else {
@@ -461,8 +454,17 @@
         }).then((res) => {
           if (res.data.status === '1') { // 发送验证码了
             this.needVerifyCode = true
+            // this.needAuthCode = false
             this.showAuthcode = false
             this.countDown()
+          } else if (res.data.status === -1 && res.data.message === '图形验证码已失效!') {
+            this.alertConent = res.data.message + '请重新输入图形验证码！'
+            this.showAlert = true
+            this.needVerifyCode = false
+            this.verifyCode = ''
+            this.verifyCodeSwitch = false
+            this.verifyCodeType = 'default'
+            this.deadLine = '120s'
           } else { // 不发送验证码
             this.alertConent = res.data.message
             this.showAlert = true
@@ -477,7 +479,7 @@
         }
         this.verifyCodeSwitch = true
         this.verifyCodeType = 'default'
-        let num = 10
+        let num = 120
         clearInterval(this.timer)
         let _this = this
         this.timer = setInterval(function () {
@@ -528,7 +530,7 @@
         font-weight bold
     .content
       line-height 20px
-      margin-top 20px
+      margin-top 12px
       padding 0 5px
       background-color #fff
       overflow hidden
@@ -539,7 +541,7 @@
           position absolute
           right 15px
           top 96px
-          z-index 9999
+          z-index 99
         .authcode 
           position absolute 
           right 15px 

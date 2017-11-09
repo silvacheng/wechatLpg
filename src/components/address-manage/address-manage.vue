@@ -7,7 +7,7 @@
     <div class="content">
       <ul class="address-list">
         <li class="item" v-for="item in addressList" :class="item.isDefault===2?'default':''">
-          <div class="info" :class="item.isLpgDefault===2?'default':''" @click="selectAddress(item)">
+          <div class="info" :class="item.isDefault===2?'default':''" @click="selectAddress(item)">
             <div class="info-detail">
               <div class="top">
                 <div class="left">联系电话:</div>
@@ -19,11 +19,11 @@
               </div>
             </div>
           </div>
-          <div class="operate" :class="item.isLpgDefault===1?'default':''">
+          <div class="operate" :class="item.isDefault===2?'default':''">
             <div class="left">
-              <div @click.stop="setDefault(item, $event)" :class="item.isLpgDefault===1?'default':''">
-                <i class="iconfont" :class="item.isLpgDefault===1?'default':''">&#xe60e;</i>
-                <span :class="item.isLpgDefault===1?'default':''">默认地址</span>
+              <div @click.stop="setDefault(item, $event)" :class="item.isDefault===2?'default':''">
+                <i class="iconfont" :class="item.isDefault===2?'default':''">&#xe60e;</i>
+                <span :class="item.isDefault===2?'default':''">默认地址</span>
               </div> 
             </div>
             <div class="right">
@@ -66,6 +66,8 @@
         addressList: [],
         userId: '',
         operateAddressId: '',
+        openId: '',
+        orderGasNo: '',
         loadingText: '正在加载地址列表',
         showLoading: true,
         showConfirm: false,
@@ -103,7 +105,6 @@
           this.showLoading = false
           if (res.data.status === '1') {
             this.addressList = res.data.data
-            cookie.set('orderGasNo', res.data.orderGasNo)
           }
         })
       },
@@ -114,14 +115,13 @@
         if ($event.target.className === 'default') {
           return
         }
-        this.userId = item.userId
+        this.userId = item.userid
         this.operateAddressId = item.id
+        this.openId = item.openId
         this.confirmTitle = '确定设为默认地址？'
         this.showConfirm = true
       },
       edit (item) { // 编辑地址
-        // console.log(item)
-        // console.log(item.detailAddress)
         cookie.set('editAddress', JSON.stringify(item))
         this.$router.push('/addressEdit')
       },
@@ -137,6 +137,9 @@
       },
       selectAddress (item) {
         cookie.set('defaultAddress', JSON.stringify(item))
+        cookie.set('appUserId', item.userid)
+        cookie.set('openId', item.openId)
+        cookie.set('orderGasNo', item.gasOrderNo)
         this.$router.push('/lpgShop')
       },
       onConfirmCancel () {
@@ -161,6 +164,7 @@
             }
           })
         } else if (this.confirmTitle === '确定设为默认地址？') { // 设为默认地址
+          data.isDefault = 2
           this.$http.post(setDefaultLpgAddressUrl, JSON.stringify(data)).then((res) => {
             console.log(res.data)
             if (res.data.status === '1') {
