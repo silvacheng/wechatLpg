@@ -10,3 +10,6 @@ export const defaultAddress = function ({commit, state}, {list}) {
 export const editAddress = function ({commit, state}, {list}) {
   commit(types.SET_EDIT_ADDRESS, list)
 }
+export const orderDetail = function ({commit, state}, {list}) {
+  commit(types.SET_ORDER_DETAIL, list)
+}

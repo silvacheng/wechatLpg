@@ -10,6 +10,9 @@ const mutations = {
   },
   [types.SET_EDIT_ADDRESS] (state, editAddress) {
     state.editAddress = editAddress
+  },
+  [types.SET_ORDER_DETAIL] (state, orderDetail) {
+    state.orderDetail = orderDetail
   }
 }
 export default mutations

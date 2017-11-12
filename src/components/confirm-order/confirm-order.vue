@@ -25,12 +25,12 @@
           <span>送货上门</span>
         </div>
         <div class="receive-time">
-          <datetime v-model="appointmentTime" 
+          <datetime 
+            v-model="appointmentTime" 
             format="YYYY-MM-DD HH:mm" 
-            start-date="2017-10-26" 
             @on-change="selectAppointmentTime" 
             title="预约送达时间" 
-            :min-year="Number(appointmentTime.substring(0,5))" 
+            :min-year="minYear" 
             :max-year="maxYear" 
             required>
           </datetime>
@@ -51,8 +51,8 @@
                 <img class="logo" src="../../common/image/LPG_small.png" width="20" height="20">
                 <span class="name">{{good.gasTypeName}}</span>                
               </div>
-              <div class="good-price">￥{{good.bottlePrice}}</div>
-              <div class="freight-price" v-show="good.freight&&Number(good.freight)!==0">送气费{{good.freight}}元&nbsp;/&nbsp;瓶</div>
+              <div class="good-price">￥{{good.bottlePrice/100}}</div>
+              <div class="freight-price" v-show="good.freight&&Number(good.freight)!==0">送气费{{good.freight/100}}元&nbsp;/&nbsp;瓶</div>
               <div class="floor-price" v-show="address.elevator==='0'||address.haveElevator===0">楼层费1.00元&nbsp;/&nbsp;层</div>
               <div class="cartcontrol-wrapper">
                 <cartcontrol :good="good" @add="addGood"></cartcontrol>
@@ -64,7 +64,15 @@
       </div>
     </div>
     <div class="shopcart-wrapper">
-      <shopcart :selectGoods="selectGoods" :address="address" :appointmentTime="appointmentTime" :remarkText="remarkText" ref="shopcart"></shopcart>
+      <shopcart 
+        :selectGoods="selectGoods" 
+        :address="address" 
+        :appointmentTime="appointmentTime"  
+        :appointmentTimeStamp="appointmentTimeStamp"  
+        :selectAppointmentTimeStamp="selectAppointmentTimeStamp"
+        :remarkText="remarkText" 
+        ref="shopcart"
+      ></shopcart>
     </div>
   </div>
 </template>
@@ -80,7 +88,9 @@
         minYear: 2017,
         maxYear: 2099,
         remarkText: '',
-        address: JSON.parse(cookie.get('defaultAddress'))
+        address: JSON.parse(cookie.get('defaultAddress')),
+        // selectAppointmentTime: 0,
+        selectAppointmentTimeStamp: 0
       }
     },
     computed: {
@@ -91,13 +101,16 @@
         let nowTimeStamp = Date.parse(new Date()) + 30 * 60 * 1000
         let halfHourDelayTime = dateFormat(new Date(nowTimeStamp), 'YYYY-MM-DD HH:mm:ss')
         return halfHourDelayTime
+      },
+      appointmentTimeStamp () {
+        let halfHourDelayTimeStamp = Date.parse(new Date()) + 30 * 60 * 1000
+        return halfHourDelayTimeStamp
       }
     },
     created () {
       if (!cookie.get('defaultAddress')) {
         this.getDefaultAddress()
       }
-      this.startDate = this.getStartDate()
     },
     methods: {
       back () {
@@ -106,14 +119,14 @@
       addGood (target) {
         this.$emit('add', target)
       },
-      getStartDate () {
-        let date = dateFormat(new Date(), 'YYYY-MM-DD HH:mm:ss')
-        let startDate = date.substring(0, 10)
-        console.log(startDate)
-        return startDate
-      },
       selectAppointmentTime (newVal) {
-        this.appointmentTime = newVal
+        // 将选择的时间转化为时间戳   提交订单时判断
+        let time = newVal + ':00'
+        this.selectAppointmentTimeStamp = Date.parse(new Date(time))
+        return time
+        // let timeStamp = Date.parse(new Date(newVal))
+        // this.selectAppointmentTimeStamp = timeStamp
+        // this.selectAppointmentTime = dateFormat(new Date(timeStamp), 'YYYY-MM-DD HH:mm:ss')
       },
       getDefaultAddress () {
         let data = {

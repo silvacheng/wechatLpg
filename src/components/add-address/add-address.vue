@@ -57,7 +57,7 @@
 <script type="text/ECMAScript-6">
   import { Group, XButton, XInput, XSwitch, XAddress, Picker, PopupRadio, ChinaAddressV3Data, cookie, Loading, Alert, XDialog } from 'vux'
   import BMap from 'BMap'
-  import { getGasCompanyUrl, getGasShopUrl, saveLpgUserInfoUrl, getVerifyCodeUrlTest, checkUserTest, getVerifyPicTest } from '../../api/config'
+  import { getGasCompanyUrl, getGasShopUrl, saveLpgUserInfoUrl, getVerifyCodeUrlTest, checkUserTest, getVerifyPicTest, getAddressListUrl } from '../../api/config'
   import { param } from '../../common/js/dom'
   export default {
     data () {
@@ -66,7 +66,8 @@
         phone: '',
         userName: '',
         userId: '',
-        openId: '',
+        openId: 'oxFVVv-WE38ZX29eKCWBCFYklfBE',
+        // openId: '',
         addressId: '',
         cityId: '',
         selectedAddress: '',
@@ -87,7 +88,7 @@
         shopId: '',
         shopOrgCode: '',
         showLoading: false,
-        loadingText: '获取地理位置中',
+        loadingText: '获取地址信息中',
         showAlert: false,
         alertConent: '',
         deadLine: '120s',
@@ -104,11 +105,11 @@
     },
     mounted: function () {
       this.showLoading = true
-      this.getLocation()
-      let openIdString = window.location.href
-      // console.log(openIdString)
+      // this.getLocation()
       // 通过字符串截取获取openId
-      this.openId = openIdString.split('?')[1].split('#/')[0].split('=')[1]
+      // let openIdString = window.location.href
+      // this.openId = openIdString.split('?')[1].split('#/')[0].split('=')[1]
+      this.getAddressList(this.openId)
     },
     watch: {
       cityId: function (newCityId) {
@@ -191,6 +192,7 @@
         })
       },
       getLocation () {
+        this.loadingText = '获取地理位置中'
         let geolocation = new BMap.Geolocation()
         let _this = this
         geolocation.getCurrentPosition(showLocation, {enableHighAccuracy: true})
@@ -343,7 +345,7 @@
             // data.appUserId = res.data.msg.appUserId
             cookie.set('defaultAddress', JSON.stringify(data))
             cookie.set('orderGasNo', res.data.msg.orderGasNo)
-            cookie.set('appUserId', res.data.msg.appUserId)
+            cookie.set('userId', res.data.msg.appUserId)
             cookie.set('openId', res.data.msg.openId)
             this.showLoading = false
             this.$router.push('/lpgshop')
@@ -493,6 +495,29 @@
             _this.deadLine = num + 's'
           }
         }, 1000)
+      },
+      getAddressList (openId) { // 获取地址信息
+        let data = {
+          'openId': openId
+        }
+        this.$http.post(getAddressListUrl, JSON.stringify(data)).then((res) => {
+          // console.log(res.data.data)
+          if (res.data.status === '1' && res.data.data.length > 0) { // 已有默认地址
+            for (let i = 0; i < res.data.data.length; i++) {
+              if (res.data.data[i].isDefault === 2) { // 取到默认地址
+                let item = res.data.data[i]
+                cookie.set('openId', item.openId)
+                cookie.set('orderGasNo', item.gasOrderNo)
+                cookie.set('userId', item.userid)
+                cookie.set('defaultAddress', JSON.stringify(item))
+                break
+              }
+            }
+            this.$router.push('/lpgshop')
+          } else { // 获取地理位置
+            this.getLocation()
+          }
+        })
       }
     },
     components: {
@@ -508,7 +533,7 @@
       XDialog
     }
   }
-</script>>
+</script>
 <style scoped lang="stylus" rel="stylesheet/stylus">
   .add-address
     overflow hidden

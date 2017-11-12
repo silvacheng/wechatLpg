@@ -22,7 +22,7 @@
           <div class="operate" :class="item.isDefault===2?'default':''">
             <div class="left">
               <div @click.stop="setDefault(item, $event)" :class="item.isDefault===2?'default':''">
-                <i class="iconfont" :class="item.isDefault===2?'default':''">&#xe60e;</i>
+                <i class="iconfont" :class="item.isDefault===2?'default':''" v-show="item.isDefault===2">&#xe60e;</i>
                 <span :class="item.isDefault===2?'default':''">默认地址</span>
               </div> 
             </div>
@@ -46,7 +46,7 @@
     <div class="confirm" @click="addAddress" v-show="!showLoading">
       <x-button type="primary">添加新地址</x-button>
     </div>
-    <alert v-model="showAlert" content="至少保留一个地址~"></alert>
+    <alert v-model="showAlert" :content="alertContent"></alert>
     <Loading class="loading" :text="loadingText" :show="showLoading"></Loading>
     <div>
       <confirm v-model="showConfirm"
@@ -72,7 +72,9 @@
         showLoading: true,
         showConfirm: false,
         showAlert: false,
-        confirmTitle: ''
+        alertContent: '',
+        confirmTitle: '',
+        needSwitchTodefaultAddress: false
       }
     },
     created () {
@@ -105,6 +107,20 @@
           this.showLoading = false
           if (res.data.status === '1') {
             this.addressList = res.data.data
+            if (this.needSwitchTodefaultAddress) {
+              for (let i = 0; i < res.data.data.length; i++) {
+                if (res.data.data[i].isDefault === 2) { // 列表中的默认地址
+                  let item = res.data.data[i]
+                  cookie.set('defaultAddress', JSON.stringify(item))
+                  cookie.set('appUserId', item.userid)
+                  cookie.set('openId', item.openId)
+                  cookie.set('orderGasNo', item.gasOrderNo)
+                  // 恢复默认需要把地址切换为默认地址开关按钮
+                  this.needSwitchTodefaultAddress = false
+                  break
+                }
+              }
+            }
           }
         })
       },
@@ -127,8 +143,17 @@
       },
       deleteAddress (item) {
         if (this.addressList.length === 1) { // 只有一个地址时
+          this.alertContent = '至少保留一个地址~'
           this.showAlert = true
           return
+        }
+        if (item.isDefault === 2) { // 只有一个地址时
+          this.alertContent = '不能删除默认地址~'
+          this.showAlert = true
+          return
+        }
+        if (item.gasOrderNo === this.address.gasOrderNo) { // 删除了当前选中的店铺地址  需要把地址切换为默认地址
+          this.needSwitchTodefaultAddress = true
         }
         this.userId = item.userId
         this.operateAddressId = item.id

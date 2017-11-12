@@ -25,11 +25,11 @@
       </div>
       <div> 
         <span class="left">创建时间</span> 
-        <span class="right">{{orderDetail.createTime}}</span>
+        <span class="right">{{orderDetail.createTime.substring(0,19)}}</span>
       </div>
       <div> 
         <span class="left">预计送达</span> 
-        <span class="right">{{orderDetail.bookingTime}}</span>
+        <span class="right">{{orderDetail.bookingTime.substring(0,19)}}</span>
       </div>
       <div> 
         <span class="left">配送方式</span> 
@@ -56,10 +56,10 @@
                 <span>{{good.gasTypeName}}</span>
               </div>
               <div class="right-middle">
-                <span>送气费{{good.freight}}元&nbsp;/&nbsp;瓶</span><span class="right">楼层费1.00元&nbsp;/&nbsp;层</span>
+                <span>送气费{{good.freight/100}}元&nbsp;/&nbsp;瓶</span><span class="right">楼层费1.00元&nbsp;/&nbsp;层</span>
               </div>
               <div class="right-bottom">
-                <div class="price">￥{{good.bottlePrice}}</div>
+                <div class="price">￥{{good.bottlePrice/100}}</div>
                 <div>x {{good.amount}}</div>
               </div>
             </div>            
@@ -68,21 +68,26 @@
       </div>
       <div class="order-price">
         <div class="total">合计&nbsp;:<span>￥{{orderDetail.totalCost/100}}</span></div>
-        <div class="other-info">共{{goodAmout}}件商品（楼层费:￥5.00;送气费:￥10.00）</div>
+        <div class="other-info">共{{goodAmout}}件商品（楼层费:￥{{orderDetail.floorCost/100}}&nbsp;送气费:￥{{orderDetail.deliverCost/100}}）</div>
       </div>
     </div>      
   </div>  
 </template>
 <script type="text/ECMAScript-6">
   import { cookie } from 'vux'
+  import { mapGetters } from 'vuex'
   export default {
     data () {
       return {
-        orderDetail: JSON.parse(cookie.get('selectedOrder')),
+        // orderDetail: JSON.parse(cookie.get('selectedOrder')),
         defaultAddress: JSON.parse(cookie.get('defaultAddress'))
+        // selectedOrderGasList: JSON.parse(cookie.get('selectedOrderGasList'))
       }
     },
     computed: {
+      ...mapGetters({
+        orderDetail: 'orderDetail'
+      }),
       orderStateDesc () {
         let state = this.orderDetail.orderState
         let desc
@@ -127,6 +132,8 @@
     },
     methods: {
       back () {
+        cookie.remove('orderDetail')
+        // cookie.remove('selectedOrderGasList')
         this.$router.back()
       }
     }
@@ -171,6 +178,13 @@
         padding 8px 0
         .iconfont 
           margin-right 10px
+      .address 
+        display flex 
+        span 
+          flex 1
+          line-height 20px
+          word-break break-all
+          overflow hidden
     .detail-info 
       padding 0 15px
       div
@@ -187,6 +201,7 @@
     .order-info 
       padding 0 15px 
       border-top 3px solid #efefef
+      margin-bottom 30px
       .order-title
         display flex
         justify-content space-between

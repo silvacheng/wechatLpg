@@ -75,7 +75,11 @@
           this.showAlert = true
           return
         }
-
+        if (this.haveElevator === 2 && Number(this.editAddress.floorLevel) > 10) { // 无电梯楼层不能超过10
+          this.alertConent = '无电梯楼层不能大于10'
+          this.showAlert = true
+          return
+        }
         let data = {
           'openId': userInfo.openId,
           'userid': userInfo.userid,

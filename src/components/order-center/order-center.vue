@@ -13,7 +13,10 @@
       </tab>
       <div class="content">
         <ul>
-          <li class="order" v-for="(order, index) in totalOrder" v-show="selectOrderState==='all'||order.orderState===selectOrderState">
+          <li class="order" 
+          v-for="(order, index) in totalOrder" 
+          v-show="selectOrderState==='all'||order.orderState===selectOrderState"
+          >
             <div class="order-title">
               <span class="shop">华来门店</span>
               <span class="status" v-show="order.orderState==='2'">等待卖家发货</span>
@@ -22,7 +25,7 @@
               <span class="status" v-show="order.orderState==='5'">交易关闭</span>
               <span class="status" v-show="order.orderState==='6'">已取消</span>
             </div>
-            <div class="good-wrapper" @click="enterDetail(order, index)">
+            <div class="good-wrapper" @click.stop.prevent="checkOrder(order)">
               <ul>
                 <li class="good-item" v-for="good in order.lstGas" v-show="good.amount>0">
                   <div class="left">
@@ -33,11 +36,11 @@
                       <span>{{good.gasTypeName}}</span>
                     </div>
                     <div class="right-middle">
-                      <span v-show="good.freight&&Number(good.freight)!==0">送气费{{good.freight}}元&nbsp;/&nbsp;瓶</span>
+                      <span v-show="good.freight&&Number(good.freight)!==0">送气费{{good.freight/100}}元&nbsp;/&nbsp;瓶</span>
                       <span class="right" v-show="address.elevator==='0'||address.haveElevator===0">楼层费1.00元&nbsp;/&nbsp;层</span>
                     </div>
                     <div class="right-bottom">
-                      <div class="price">￥{{good.bottlePrice}}</div>
+                      <div class="price">￥{{good.bottlePrice/100}}</div>
                       <div>x {{good.amount}}</div>
                     </div>
                   </div>
@@ -51,7 +54,8 @@
             <div class="operate">
               <span @click="deleteOrder(order)" v-show="order.orderState==='6'">删除订单</span>
               <span @click="cancelOrder(order)" v-show="order.orderState==='2'">取消订单</span>
-              <span @click="contractOrder(order)" v-show="order.orderState==='3'">联系送气工</span>
+              <span @click="contractOrder(order)" v-show="(order.orderState==='3'||order.orderState==='2')&&order.deliverPhone">联系项目公司</span>
+              <span @click="confirmOrder(order)" v-show="order.orderState==='3'">确认收货</span>
             </div>
           </li>                   
         </ul>
@@ -76,6 +80,7 @@
 <script type="text/ECMAScript-6">
   import { Tab, TabItem, cookie, Loading, Confirm } from 'vux'
   import { getGasOrderUrl, updateGasOrderUrl } from '../../api/config'
+  import { mapMutations } from 'vuex'
   export default {
     data () {
       return {
@@ -86,6 +91,7 @@
         confirmTitle: '',
         showConfirm: false,
         currentOperateOrder: {},
+        // orderDetail: {},
         selectOrderState: 'all',
         showEmpty: false
       }
@@ -143,7 +149,7 @@
       getOrderList () {
         this.showLoading = true
         let data = {
-          'orderGasNo': cookie.get('orderGasNo'),
+          'gasOrderNo': cookie.get('orderGasNo'),
           'openId': cookie.get('openId')
         }
         // console.log(data)
@@ -164,11 +170,10 @@
           }
         })
       },
-      enterDetail (order, index) {
+      checkOrder (order) {
         this.currentOperateOrder = order
-        // console.log('当前查看详情的订单的序号为：' + (index + 1))
-        // console.log(this.totalOrder[index])
-        cookie.set('selectedOrder', JSON.stringify(order))
+        this.$emit('select', order)
+        this.orderDetail(order)
         this.$router.push('/orderDetail')
       },
       cancelOrder (order) { // 取消订单
@@ -181,9 +186,14 @@
         this.confirmTitle = '确定删除此订单？'
         this.showConfirm = true
       },
-      contractOrder (order) { // 删除订单
+      contractOrder (order) { // 删除订单  TODO 拨打送气工电话
         this.currentOperateOrder = order
-        this.confirmTitle = '确定删除此订单？'
+        this.confirmTitle = '确定拨打电话：' + order.deliverPhone + '吗？'
+        this.showConfirm = true
+      },
+      confirmOrder (order) { // 删除订单  TODO 拨打送气工电话
+        this.currentOperateOrder = order
+        this.confirmTitle = '确认收货吗？'
         this.showConfirm = true
       },
       onConfirmCancel () {
@@ -197,7 +207,12 @@
           return
         }
         let order = this.currentOperateOrder
+        if (this.confirmTitle.indexOf('确定拨打电话') > 0) {
+          let phone = order.deliverPhone
+          this.callPhone(phone)
+        }
         let data = {
+          openId: order.openId,
           id: order.id,
           orderState: order.orderState,
           deliverDepartmentId: order.deliverDepartmentId,
@@ -225,10 +240,26 @@
               _this.getOrderList()
             }
           })
+        } else if (this.confirmTitle === '确认收货吗？') { // 确认收货
+          data.orderState = 4 // 发送要改变的状态
+          this.$http.post(updateGasOrderUrl, JSON.stringify(data)).then((res) => {
+            console.log(res.data)
+            // 清除操作的订单
+            _this.currentOperateOrder = {}
+            if (res.data.status === '1') {
+              _this.getOrderList()
+            }
+          })
         }
         // 清除confirmTitle
         this.confirmTitle = ''
-      }
+      },
+      callPhone (phone) {
+        window.location.href = 'tel://' + phone
+      },
+      ...mapMutations({
+        orderDetail: 'SET_ORDER_DETAIL'
+      })
     },
     components: {
       Tab,

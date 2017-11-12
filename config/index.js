@@ -27,20 +27,19 @@ module.exports = {
     autoOpenBrowser: false,
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
-    // proxyTable: {},
     proxyTable: {
-      // '/zrds': {	//正式环境跨域请求 
-      //   target: 'http://zrds.zrhsh.cn/',
-      //   changeOrigin: true,
-      //   pathRewrite: {
-      //     '^/zrds/': ''
-      //   }
-      // },
       '/lw': {	//正式环境跨域请求
-        target: 'http://10.10.17.157:8083/',
+        target: 'http://10.10.17.157:8080/',
         changeOrigin: true,
         pathRewrite: {
           '^/lw/': ''
+        }
+      },
+      '/lhx': {	//正式环境跨域请求
+        target: 'http://10.10.30.100:8080/',
+        changeOrigin: true,
+        pathRewrite: {
+          '^/lhx/': ''
         }
       },
       '/test': {	// 测试环境

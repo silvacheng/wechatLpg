@@ -10,6 +10,7 @@ import { AjaxPlugin, cookie } from 'vux'
 
 Vue.use(AjaxPlugin)
 Vue.use(VueRouter)
+
 router.beforeEach((to, from, next) => {
   if (cookie.get('openId')) {
     if (to.path === '/') {
@@ -18,18 +19,11 @@ router.beforeEach((to, from, next) => {
       next()
     }
   } else {
-    // console.log(window.location.href)
-    // // 获取用户的微信 openId
-    // let currentUrl = window.location.href
-    // let openId = currentUrl.split('?')[1].split('=')[1].split('#')[0]
-    // cookie.set('openId', openId)
     next()
   }
 })
 FastClick.attach(document.body)
-
 Vue.config.productionTip = false
-// console.log(Vue.http.defaults.headers)
 // 配置请求头
 Vue.http.defaults.headers.post['Content-Type'] = 'application/json;charset=utf-8'
 

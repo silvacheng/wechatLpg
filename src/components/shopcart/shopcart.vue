@@ -7,10 +7,10 @@
           <div class="bottom">合计金额：<span class="red">￥{{totalGasPrice}}</span>&nbsp;&nbsp;<span class="remark">(不包含送气费，楼层费)</span></div>
         </div>
         <div class="content-left" v-show="fullPath==='/confirmOrder'||fullPath==='/confirmorder'">
-          <div class="top">合计金额:<span class="red">￥{{totalGasPrice+totalFloorPrice+totalFreightPrice}}</span></div>
+          <div class="top">合计金额:<span class="red">￥{{(totalGasPrice+totalFreightPrice+totalFloorPrice)/100}}</span></div>
           <div class="bottom bottom-spec">
-            <div>送气费:￥{{totalFreightPrice}}</div>
-            <div class="floor">楼层费:￥{{totalFloorPrice}}</div>
+            <div>送气费:￥{{totalFreightPrice/100}}</div>
+            <div class="floor">楼层费:￥{{totalFloorPrice/100}}</div>
           </div>
         </div>
         <div class="content-right">
@@ -43,11 +43,12 @@
       <div class="list-mark" v-show="listShow" @click="hideList"></div>
     </transition> -->
     <Loading class="loading" :text="loadingText" :show="showLoading"></Loading>
+    <alert v-model="showAlert" :content="alertContent"></alert>    
   </div>
 </template>
 <script type="text/ECMAScript-6">
   import cartcontrol from '../../base/cartcontrol/cartcontrol.vue'
-  import { cookie, Loading } from 'vux'
+  import { cookie, Loading, dateFormat, Alert } from 'vux'
   import { mapMutations } from 'vuex'
   import { postGasOrderUrl } from '../../api/config'
   export default {
@@ -61,6 +62,12 @@
       appointmentTime: {
         type: String
       },
+      appointmentTimeStamp: {
+        type: Number
+      },
+      selectAppointmentTimeStamp: {
+        type: Number
+      },
       remarkText: {
         type: String
       }
@@ -70,7 +77,22 @@
         fold: true,
         showLoading: false,
         loadingText: '提交订单中...',
-        fullPath: this.$router.history.current.fullPath
+        fullPath: this.$router.history.current.fullPath,
+        needPlus: true,
+        showAlert: false,
+        alertContent: ''
+      }
+    },
+    created () {
+      // console.log(this.selectGoods)
+      if (this.needPlus) {
+        for (let i = 0; i < this.selectGoods.length; i++) {
+          this.selectGoods[i].bottlePrice = this.selectGoods[i].bottlePrice * 100
+          this.selectGoods[i].floorFee = this.selectGoods[i].floorFee * 100
+          this.selectGoods[i].freight = this.selectGoods[i].freight * 100
+          this.selectGoods[i].weightPrice = this.selectGoods[i].weightPrice * 100
+        }
+        this.needPlus = false
       }
     },
     computed: {
@@ -96,7 +118,7 @@
         let floor = this.address.floor ? Number(this.address.floor) - 1 : Number(this.address.floorLevel) - 1
         // console.log('需要计算楼层费的层数为：' + floor)
         this.selectGoods.forEach((good) => {
-          total += floor * good.amount
+          total += floor * good.amount * 100
         })
         return total
       },
@@ -149,11 +171,32 @@
           let goodArr = []
           // 过滤掉  个数为0的good
           goodArr = this.selectGoods.filter(function (currentValue, index) {
-            console.log(currentValue, index)
             return currentValue.amount > 0
           })
           let selectFoodStr = JSON.stringify(goodArr)
           // console.log(goodArr)
+          let gasCost = this.totalGasPrice
+          let deliverCost = this.totalFreightPrice
+          let floorCost = this.totalFloorPrice
+          let totalCost = Number((floorCost + deliverCost + gasCost).toFixed(0))
+          // 判断预约时间是否为半个小时延迟还是自己选择的时间
+          let bookingTime
+          if (this.selectAppointmentTimeStamp === 0) { // 选择半个小时延迟
+            bookingTime = this.appointmentTime
+          } else {
+            let currentTimeStamp = Date.parse(new Date())
+            console.log('当前时间戳为：' + currentTimeStamp)
+            console.log('选择的预约时间戳为：' + this.selectAppointmentTimeStamp)
+            let deltaStamp = this.selectAppointmentTimeStamp - currentTimeStamp
+            console.log('相差时间戳为：' + deltaStamp)
+            if (deltaStamp >= 30 * 60 * 1000) { // 半个小时后
+              bookingTime = dateFormat(new Date(this.selectAppointmentTimeStamp), 'YYYY-MM-DD HH:mm:ss')
+            } else {
+              this.showAlert = true
+              this.alertContent = '预约时间至少为半个小时之后~'
+              return
+            }
+          }
           let data = {
             'openId': cookie.get('openId'),
             'userId': cookie.get('appUserId'), // appUserId
@@ -168,14 +211,14 @@
             'floor': userInfo.floor ? userInfo.floor : userInfo.floorLevel, // 楼层
             'payType': '1', // 支付方式  1：货到付款   2：在线支付
             'deliveryType': '1', // 配送方式  1：送货上门    2：上门提货
-            'bookingTime': this.appointmentTime, // 预约时间
+            'bookingTime': bookingTime, // 预约时间
             'customerRemark': this.remarkText,
-            'gasCost': this.totalGasPrice * 100, // 燃气费 精确到分
+            'gasCost': gasCost, // 燃气费 精确到分
             'waterCost': 0, // 水费（不含送水费、楼层费）
             'auxiliaryMaterialCost': 0, // 辅料费
-            'deliverCost': this.totalFreightPrice * 100, // 运费
-            'floorCost': this.totalFloorPrice * 100, // 楼层费
-            'totalCost': (this.totalGasPrice + this.totalFloorPrice + this.totalFreightPrice) * 100, // 总费用
+            'deliverCost': deliverCost, // 运费
+            'floorCost': floorCost, // 楼层费
+            'totalCost': totalCost, // 总费用
             'lstGasStr': selectFoodStr, // 瓶装气商品列表
             'lstWaterStr': '[]', // 桶装水商品列表
             'lstAuxinliaryMaterialStr': '[]', // 辅料商品列表
@@ -221,7 +264,8 @@
     },
     components: {
       cartcontrol,
-      Loading
+      Loading,
+      Alert
     }
   }
 </script>
@@ -237,12 +281,10 @@
     .content
       display flex
       background #141d27
-      // background #fff
       font-size 0
       height 48px
       line-height 48px
       color rgba(255, 255, 255, 0.4) 
-      // color #6a6a6a
       .content-left
         flex 1
         flex-direction row-reverse
