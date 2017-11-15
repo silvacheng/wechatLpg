@@ -100,8 +100,7 @@
       },
       getAddressList () { // 获取地址信息
         let data = {
-          'openId': this.address.openId,
-          'userid': this.address.appUserId ? this.address.appUserId : this.address.userId
+          'openId': this.address.openId
         }
         this.$http.post(getAddressListUrl, JSON.stringify(data)).then((res) => {
           this.showLoading = false
@@ -112,7 +111,7 @@
                 if (res.data.data[i].isDefault === 2) { // 列表中的默认地址
                   let item = res.data.data[i]
                   cookie.set('defaultAddress', JSON.stringify(item))
-                  cookie.set('appUserId', item.userid)
+                  cookie.set('userId', item.userid)
                   cookie.set('openId', item.openId)
                   cookie.set('orderGasNo', item.gasOrderNo)
                   // 恢复默认需要把地址切换为默认地址开关按钮
@@ -162,7 +161,7 @@
       },
       selectAddress (item) {
         cookie.set('defaultAddress', JSON.stringify(item))
-        cookie.set('appUserId', item.userid)
+        cookie.set('userId', item.userid)
         cookie.set('openId', item.openId)
         cookie.set('orderGasNo', item.gasOrderNo)
         this.$router.push('/lpgShop')

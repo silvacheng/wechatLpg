@@ -63,7 +63,7 @@
         </div>
       </div>
     </div>
-    <div class="shopcart-wrapper">
+    <div class="shopcart-wrapper" ref="shopcartWrapper">
       <shopcart 
         :selectGoods="selectGoods" 
         :address="address" 
@@ -81,7 +81,7 @@
   import { mapGetters } from 'vuex'
   import shopcart from '../shopcart/shopcart.vue'
   import cartcontrol from '../../base/cartcontrol/cartcontrol.vue'
-  import { getDefaultAddressUrl } from '../../api/config'
+  // import { getDefaultAddressUrl } from '../../api/config'
   export default {
     data () {
       return {
@@ -89,7 +89,6 @@
         maxYear: 2099,
         remarkText: '',
         address: JSON.parse(cookie.get('defaultAddress')),
-        // selectAppointmentTime: 0,
         selectAppointmentTimeStamp: 0
       }
     },
@@ -107,11 +106,6 @@
         return halfHourDelayTimeStamp
       }
     },
-    created () {
-      if (!cookie.get('defaultAddress')) {
-        this.getDefaultAddress()
-      }
-    },
     methods: {
       back () {
         this.$router.back()
@@ -122,29 +116,15 @@
       selectAppointmentTime (newVal) {
         // 将选择的时间转化为时间戳   提交订单时判断
         let time = newVal + ':00'
-        this.selectAppointmentTimeStamp = Date.parse(new Date(time))
+        // alert('选择的预约时间：' + time)
+        // alert('格式化时间例子为：' + new Date('2017/11/13 18:09:06'))
+        // alert('格式化时间为：' + new Date(newVal))
+        let timeParse = time.replace(/-/g, '/')
+        // alert('格式化时间为：' + timeParse)
+        // alert('格式化时间例子为：' + new Date(timeParse))
+        this.selectAppointmentTimeStamp = Date.parse(new Date(timeParse))
+        // alert('选择的预约时间戳为：' + this.selectAppointmentTimeStamp)
         return time
-        // let timeStamp = Date.parse(new Date(newVal))
-        // this.selectAppointmentTimeStamp = timeStamp
-        // this.selectAppointmentTime = dateFormat(new Date(timeStamp), 'YYYY-MM-DD HH:mm:ss')
-      },
-      getDefaultAddress () {
-        let data = {
-          'userId': cookie.get('defaultAddress'),
-          'openId': this.address.openId
-        }
-        let _this = this
-        this.$http.post(getDefaultAddressUrl, JSON.stringify(data)).then((res) => {
-          if (res.data.status === '1') {
-            _this.defaultAddress = res.data.data
-          }
-        })
-      },
-      remarkFocus () {
-        this.$refs.shopcart.$el.style.display = 'none'
-      },
-      remarkBlur () {
-        this.$refs.shopcart.$el.style.display = 'block'
       }
     },
     components: {
@@ -258,5 +238,10 @@
             bottom 20px
             span
               font-size 14px
-
+    // .shopcart-wrapper
+    //   position absolute
+    //   left 0 
+    //   bottom 48px
+    //   height 48px
+    //   width 100%
 </style>

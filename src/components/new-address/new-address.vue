@@ -330,12 +330,10 @@
         this.$http.post(saveLpgUserInfoUrl, JSON.stringify(data)).then((res) => {
           console.log(res.data)
           if (res.data.status === '1') {
-            data.orderGasNo = res.data.msg.orderGasNo
-            data.appUserId = res.data.msg.appUserId
             cookie.set('defaultAddress', JSON.stringify(data))
             cookie.set('orderGasNo', res.data.msg.orderGasNo)
-            cookie.set('appUserId', res.data.msg.appUserId)
-            cookie.set('openId', 'oxFVVv-WE38ZX29eKCWBCFYklfBE')
+            cookie.set('userId', res.data.msg.appUserId)
+            cookie.set('openId', res.data.msg.openId)
             this.showLoading = false
             this.$router.push('/lpgshop')
           } else {

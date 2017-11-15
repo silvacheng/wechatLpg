@@ -66,8 +66,8 @@
         phone: '',
         userName: '',
         userId: '',
-        openId: 'oxFVVv-WE38ZX29eKCWBCFYklfBE',
-        // openId: '',
+        // openId: 'oxFVVv-WE38ZX29eKCWBCFYklfBE',
+        openId: '',
         addressId: '',
         cityId: '',
         selectedAddress: '',
@@ -105,11 +105,16 @@
     },
     mounted: function () {
       this.showLoading = true
-      // this.getLocation()
       // 通过字符串截取获取openId
-      // let openIdString = window.location.href
-      // this.openId = openIdString.split('?')[1].split('#/')[0].split('=')[1]
-      this.getAddressList(this.openId)
+      let openIdString = window.location.href
+      if (openIdString.indexOf('#/') > -1) {
+        this.openId = openIdString.split('?')[1].split('#/')[0].split('=')[1]
+      } else {
+        this.openId = openIdString.split('?')[1].split('=')[1]
+      }
+      if (this.openId) {
+        this.getAddressList(this.openId)
+      }
     },
     watch: {
       cityId: function (newCityId) {
@@ -341,8 +346,6 @@
         this.$http.post(saveLpgUserInfoUrl, JSON.stringify(data)).then((res) => {
           console.log(res.data)
           if (res.data.status === '1') {
-            // data.orderGasNo = res.data.msg.orderGasNo
-            // data.appUserId = res.data.msg.appUserId
             cookie.set('defaultAddress', JSON.stringify(data))
             cookie.set('orderGasNo', res.data.msg.orderGasNo)
             cookie.set('userId', res.data.msg.appUserId)
@@ -510,11 +513,13 @@
                 cookie.set('orderGasNo', item.gasOrderNo)
                 cookie.set('userId', item.userid)
                 cookie.set('defaultAddress', JSON.stringify(item))
+                this.$router.push('/lpgshop')
                 break
+              } else {
+                this.getLocation()
               }
             }
-            this.$router.push('/lpgshop')
-          } else { // 获取地理位置
+          } else {
             this.getLocation()
           }
         })

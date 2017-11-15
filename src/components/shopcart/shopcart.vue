@@ -80,6 +80,7 @@
         fullPath: this.$router.history.current.fullPath,
         needPlus: true,
         showAlert: false,
+        selectAppointmentTime: '',
         alertContent: ''
       }
     },
@@ -133,7 +134,7 @@
         if (this.totalGasPrice === 0) {
           return '请选择商品'
         } else {
-          if (this.fullPath === '/lpgshop') {
+          if (this.fullPath === '/lpgshop' || this.fullPath === '/lpgShop') {
             return '结算'
           } else {
             return '提交订单'
@@ -185,11 +186,13 @@
             bookingTime = this.appointmentTime
           } else {
             let currentTimeStamp = Date.parse(new Date())
-            console.log('当前时间戳为：' + currentTimeStamp)
-            console.log('选择的预约时间戳为：' + this.selectAppointmentTimeStamp)
+            // alert('当前时间戳为：' + currentTimeStamp)
+            // alert('选择的预约时间戳为：' + this.selectAppointmentTimeStamp)
             let deltaStamp = this.selectAppointmentTimeStamp - currentTimeStamp
             console.log('相差时间戳为：' + deltaStamp)
-            if (deltaStamp >= 30 * 60 * 1000) { // 半个小时后
+            let deltaCount = 30 * 60 * 1000
+            if (Number(deltaStamp) >= deltaCount) { // 半个小时后
+              this.selectAppointmentTime = dateFormat(new Date(this.selectAppointmentTimeStamp), 'YYYY-MM-DD HH:mm:ss')
               bookingTime = dateFormat(new Date(this.selectAppointmentTimeStamp), 'YYYY-MM-DD HH:mm:ss')
             } else {
               this.showAlert = true
@@ -199,7 +202,7 @@
           }
           let data = {
             'openId': cookie.get('openId'),
-            'userId': cookie.get('appUserId'), // appUserId
+            'userId': cookie.get('userId'), //
             'userCode': cookie.get('orderGasNo'), // 订气编号
             // 'orderGasNo': cookie.get('orderGasNo'), // 订气编号
             'deliverCompanyId': userInfo.deliverCompanyId ? userInfo.deliverCompanyId : userInfo.orgCode, // 公司id

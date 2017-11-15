@@ -6,22 +6,22 @@ import VueRouter from 'vue-router'
 import router from './router'
 import store from './store'
 import App from './App'
-import { AjaxPlugin, cookie } from 'vux'
+import { AjaxPlugin } from 'vux'
 
 Vue.use(AjaxPlugin)
 Vue.use(VueRouter)
-
-router.beforeEach((to, from, next) => {
-  if (cookie.get('openId')) {
-    if (to.path === '/') {
-      next({path: '/lpgShop'})
-    } else {
-      next()
-    }
-  } else {
-    next()
-  }
-})
+// console.log(window.navigator.userAgent)
+// router.beforeEach((to, from, next) => {
+//   if (cookie.get('openId')) {
+//     if (to.path === '/') {
+//       next({path: '/lpgShop'})
+//     } else {
+//       next()
+//     }
+//   } else {
+//     next()
+//   }
+// })
 FastClick.attach(document.body)
 Vue.config.productionTip = false
 // 配置请求头

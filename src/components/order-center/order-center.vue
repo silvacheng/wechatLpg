@@ -2,10 +2,10 @@
   <div class="order-center">
     <div class="header">
       <i class="iconfont back" @click="back">&#xe603;</i>
-      <h3 class="title">订单中心</h3>
+      <h3 class="title">我的订单</h3>
     </div>
     <div class="content-wrapper">
-      <tab>
+      <tab ref="tab">
         <tab-item selected @on-item-click="onItemClick">全部</tab-item>
         <tab-item @on-item-click="onItemClick">待发货</tab-item>
         <tab-item @on-item-click="onItemClick">待收货</tab-item>
@@ -18,7 +18,7 @@
           v-show="selectOrderState==='all'||order.orderState===selectOrderState"
           >
             <div class="order-title">
-              <span class="shop">华来门店</span>
+              <span class="shop">{{order.deliverDepartmentName}}</span>
               <span class="status" v-show="order.orderState==='2'">等待卖家发货</span>
               <span class="status" v-show="order.orderState==='3'">等待买家收货</span>
               <span class="status" v-show="order.orderState==='4'">交易完成</span>
@@ -52,9 +52,9 @@
               <div class="total">共{{goodAmout(order)}}件商品&nbsp;合计:<span>￥{{order.totalCost/100}}</span></div>
             </div>
             <div class="operate">
-              <span @click="deleteOrder(order)" v-show="order.orderState==='6'">删除订单</span>
+              <span @click="deleteOrder(order)" v-show="order.orderState==='6'||order.orderState==='4'">删除订单</span>
               <span @click="cancelOrder(order)" v-show="order.orderState==='2'">取消订单</span>
-              <span @click="contractOrder(order)" v-show="(order.orderState==='3'||order.orderState==='2')&&order.deliverPhone">联系项目公司</span>
+              <span @click="contractOrder(order)" v-show="(order.orderState==='3'||order.orderState==='2')&&order.deliverPhone">联系我们</span>
               <span @click="confirmOrder(order)" v-show="order.orderState==='3'">确认收货</span>
             </div>
           </li>                   
@@ -91,9 +91,14 @@
         confirmTitle: '',
         showConfirm: false,
         currentOperateOrder: {},
-        // orderDetail: {},
         selectOrderState: 'all',
-        showEmpty: false
+        showEmpty: false,
+        userAgent: window.navigator.userAgent
+      }
+    },
+    computed: {
+      tabItemSelectedIndex () {
+        return cookie.get('selectedIndex') ? cookie.get('selectedIndex') : '0'
       }
     },
     created () {
@@ -125,6 +130,7 @@
     },
     methods: {
       back () {
+        cookie.remove('selectedIndex')
         this.$router.push('/lpgshop')
       },
       goodAmout (order) {
@@ -145,11 +151,11 @@
         } else if (index === 3) {
           this.selectOrderState = '4'
         }
+        cookie.set('selectedIndex', index)
       },
       getOrderList () {
         this.showLoading = true
         let data = {
-          'gasOrderNo': cookie.get('orderGasNo'),
           'openId': cookie.get('openId')
         }
         // console.log(data)
@@ -188,8 +194,8 @@
       },
       contractOrder (order) { // 删除订单  TODO 拨打送气工电话
         this.currentOperateOrder = order
-        this.confirmTitle = '确定拨打电话：' + order.deliverPhone + '吗？'
-        this.showConfirm = true
+        let phone = order.deliverPhone
+        this.callPhone(phone)
       },
       confirmOrder (order) { // 删除订单  TODO 拨打送气工电话
         this.currentOperateOrder = order
@@ -207,10 +213,6 @@
           return
         }
         let order = this.currentOperateOrder
-        if (this.confirmTitle.indexOf('确定拨打电话') > 0) {
-          let phone = order.deliverPhone
-          this.callPhone(phone)
-        }
         let data = {
           openId: order.openId,
           id: order.id,
@@ -255,7 +257,18 @@
         this.confirmTitle = ''
       },
       callPhone (phone) {
-        window.location.href = 'tel://' + phone
+        // console.log('拨打电话')
+        let isAndroid = this.userAgent.indexOf('Android') > -1 || this.userAgent.indexOf('Adr') > -1
+        let isIos = !!this.userAgent.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/)
+        // console.log(isAndroid)
+        // console.log(isIos)
+        if (isAndroid) {
+          // console.log(111)
+          window.location.href = 'tel:' + phone
+        } else if (isIos) {
+          // console.log(222)
+          window.location.href = 'tel://' + phone
+        }
       },
       ...mapMutations({
         orderDetail: 'SET_ORDER_DETAIL'
@@ -358,8 +371,9 @@
           font-size 14px
           padding 6px
           border 1px solid #a4a4a4
-          border-radius 10%
-          display inline-block
+          border-radius 5px
+          margin-right 2px
+          display inline-block 
     .empty
       margin-top 10px
       background-color #ffffff

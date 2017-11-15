@@ -42,7 +42,7 @@
     </div>
     <div class="order-info">
       <div class="order-title">
-        <div class="shop">{{defaultAddress.deliverDepartmentName||defaultAddress.departmentName}}</div>
+        <div class="shop">{{orderDetail.deliverDepartmentName}}</div>
         <div class="state">{{orderStateDesc}}</div>
       </div>
       <div class="good-wrapper">
@@ -56,7 +56,7 @@
                 <span>{{good.gasTypeName}}</span>
               </div>
               <div class="right-middle">
-                <span>送气费{{good.freight/100}}元&nbsp;/&nbsp;瓶</span><span class="right">楼层费1.00元&nbsp;/&nbsp;层</span>
+                <span>送气费{{good.freight/100}}元&nbsp;/&nbsp;瓶</span><span class="right" v-show="orderDetail.elevator==='2'">楼层费1.00元&nbsp;/&nbsp;层</span>
               </div>
               <div class="right-bottom">
                 <div class="price">￥{{good.bottlePrice/100}}</div>
@@ -79,9 +79,7 @@
   export default {
     data () {
       return {
-        // orderDetail: JSON.parse(cookie.get('selectedOrder')),
         defaultAddress: JSON.parse(cookie.get('defaultAddress'))
-        // selectedOrderGasList: JSON.parse(cookie.get('selectedOrderGasList'))
       }
     },
     computed: {
