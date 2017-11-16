@@ -7,12 +7,16 @@
     <div class="content">
       <div class="info">
         <div class="phone">
-          <div class="left">联系电话:</div>
-          <div class="right">{{address.mobile||address.phone}}</div>
+          <div class="left">用户姓名:</div>
+          <div class="right">{{address.userName}}</div>
+        </div>
+        <div class="phone">
+          <div class="left">联系方式:</div>
+          <div class="right">{{address.mobile}}</div>
         </div>
         <div class="address">
           <div class="left">收货地址:</div>
-          <div class="right">{{address.userArea||address.areaName}}{{address.userAddress||address.detailAddress}}</div>
+          <div class="right">{{address.areaName}}{{address.detailAddress}}</div>
         </div>
       </div>
       <div class="pay">
@@ -39,11 +43,11 @@
           <span>配送人员将在预约时间前/后半小时内为您送达</span>
         </div>
         <div class="remark">
-          <x-input title="备注：" placeholder="请根据您的实际情况备注说明" @on-focus="remarkFocus" @on-blur="remarkBlur" v-model="remarkText"></x-input>
+          <x-input title="备注：" placeholder="请根据您的实际情况备注说明" v-model="remarkText"></x-input>
         </div>
       </div>
       <div class="shop">
-        <div class="shop-name">{{address.deliverDepartmentName||address.departmentName}}</div>
+        <div class="shop-name">{{address.departmentName}}</div>
         <div class="good-list" ref="goodWrapper">
           <ul>
             <li class="good" v-for="good in selectGoods"  v-show="good.amount>0">
@@ -51,12 +55,11 @@
                 <img class="logo" src="../../common/image/LPG_small.png" width="20" height="20">
                 <span class="name">{{good.gasTypeName}}</span>                
               </div>
-              <div class="good-price">￥{{good.bottlePrice/100}}</div>
-              <div class="freight-price" v-show="good.freight&&Number(good.freight)!==0">送气费{{good.freight/100}}元&nbsp;/&nbsp;瓶</div>
+              <div class="good-price">￥{{good.bottlePrice}}</div>
+              <div class="freight-price" v-show="good.freight&&Number(good.freight)!==0">送气费{{good.freight}}元&nbsp;/&nbsp;瓶</div>
               <div class="floor-price" v-show="address.elevator==='0'||address.haveElevator===0">楼层费1.00元&nbsp;/&nbsp;层</div>
               <div class="cartcontrol-wrapper">
                 <cartcontrol :good="good" @add="addGood"></cartcontrol>
-                <!-- <span>x&nbsp;{{good.amount}}</span> -->
               </div>
             </li>
           </ul>
@@ -71,7 +74,6 @@
         :appointmentTimeStamp="appointmentTimeStamp"  
         :selectAppointmentTimeStamp="selectAppointmentTimeStamp"
         :remarkText="remarkText" 
-        ref="shopcart"
       ></shopcart>
     </div>
   </div>
@@ -81,7 +83,6 @@
   import { mapGetters } from 'vuex'
   import shopcart from '../shopcart/shopcart.vue'
   import cartcontrol from '../../base/cartcontrol/cartcontrol.vue'
-  // import { getDefaultAddressUrl } from '../../api/config'
   export default {
     data () {
       return {
@@ -96,10 +97,14 @@
       ...mapGetters({
         selectGoods: 'selectGoods'
       }),
-      appointmentTime () {
-        let nowTimeStamp = Date.parse(new Date()) + 30 * 60 * 1000
-        let halfHourDelayTime = dateFormat(new Date(nowTimeStamp), 'YYYY-MM-DD HH:mm:ss')
-        return halfHourDelayTime
+      appointmentTime: {
+        get: function () {
+          let nowTimeStamp = Date.parse(new Date()) + 30 * 60 * 1000
+          let halfHourDelayTime = dateFormat(new Date(nowTimeStamp), 'YYYY-MM-DD HH:mm:ss')
+          return halfHourDelayTime
+        },
+        set: function () {
+        }
       },
       appointmentTimeStamp () {
         let halfHourDelayTimeStamp = Date.parse(new Date()) + 30 * 60 * 1000

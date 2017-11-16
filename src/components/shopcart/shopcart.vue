@@ -7,10 +7,10 @@
           <div class="bottom">合计金额：<span class="red">￥{{totalGasPrice}}</span>&nbsp;&nbsp;<span class="remark">(不包含送气费，楼层费)</span></div>
         </div>
         <div class="content-left" v-show="fullPath==='/confirmOrder'||fullPath==='/confirmorder'">
-          <div class="top">合计金额:<span class="red">￥{{(totalGasPrice+totalFreightPrice+totalFloorPrice)/100}}</span></div>
+          <div class="top">合计金额:<span class="red">￥{{totalGasPrice+totalFreightPrice+totalFloorPrice}}</span></div>
           <div class="bottom bottom-spec">
-            <div>送气费:￥{{totalFreightPrice/100}}</div>
-            <div class="floor">楼层费:￥{{totalFloorPrice/100}}</div>
+            <div>送气费:￥{{totalFreightPrice}}</div>
+            <div class="floor">楼层费:￥{{totalFloorPrice}}</div>
           </div>
         </div>
         <div class="content-right">
@@ -78,22 +78,10 @@
         showLoading: false,
         loadingText: '提交订单中...',
         fullPath: this.$router.history.current.fullPath,
-        needPlus: true,
+        // needPlus: true,
         showAlert: false,
         selectAppointmentTime: '',
         alertContent: ''
-      }
-    },
-    created () {
-      // console.log(this.selectGoods)
-      if (this.needPlus) {
-        for (let i = 0; i < this.selectGoods.length; i++) {
-          this.selectGoods[i].bottlePrice = this.selectGoods[i].bottlePrice * 100
-          this.selectGoods[i].floorFee = this.selectGoods[i].floorFee * 100
-          this.selectGoods[i].freight = this.selectGoods[i].freight * 100
-          this.selectGoods[i].weightPrice = this.selectGoods[i].weightPrice * 100
-        }
-        this.needPlus = false
       }
     },
     computed: {
@@ -116,11 +104,12 @@
         if (this.address.elevator === '1' || this.address.haveElevator === 1) {
           return total
         }
-        let floor = this.address.floor ? Number(this.address.floor) - 1 : Number(this.address.floorLevel) - 1
+        let floor = Number(this.address.floorLevel) - 1
         // console.log('需要计算楼层费的层数为：' + floor)
         this.selectGoods.forEach((good) => {
-          total += floor * good.amount * 100
+          total += floor * good.amount
         })
+        // console.log('楼层费总计：' + total)
         return total
       },
       totalFreightPrice () {
@@ -169,16 +158,22 @@
           this.$router.push('/confirmOrder')
         } else { // 提交订单
           let userInfo = this.address
-          let goodArr = []
+          let goodArr = this.selectGoods
           // 过滤掉  个数为0的good
-          goodArr = this.selectGoods.filter(function (currentValue, index) {
+          goodArr = goodArr.filter(function (currentValue, index) {
             return currentValue.amount > 0
           })
+          for (let i = 0; i < this.selectGoods.length; i++) {
+            goodArr.bottlePrice = goodArr.bottlePrice * 100
+            goodArr.floorFee = goodArr.floorFee * 100
+            goodArr.freight = goodArr.freight * 100
+            goodArr.weightPrice = goodArr.weightPrice * 100
+          }
           let selectFoodStr = JSON.stringify(goodArr)
-          // console.log(goodArr)
-          let gasCost = this.totalGasPrice
-          let deliverCost = this.totalFreightPrice
-          let floorCost = this.totalFloorPrice
+          console.log(goodArr)
+          let gasCost = this.totalGasPrice * 100
+          let deliverCost = this.totalFreightPrice * 100
+          let floorCost = this.totalFloorPrice * 100
           let totalCost = Number((floorCost + deliverCost + gasCost).toFixed(0))
           // 判断预约时间是否为半个小时延迟还是自己选择的时间
           let bookingTime

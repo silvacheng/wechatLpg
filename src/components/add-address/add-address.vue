@@ -34,7 +34,7 @@
           <img :src="imgRandSrc" style="max-width:100%">
         </div>
         <x-input v-show="needVerifyCode" title="验证码" name="verifyCode" placeholder="请输入手机验证码" keyboard="number" :max="4" v-model="verifyCode" required></x-input>
-        <x-address title="所在地区" v-model="addressValue" :list="addressData" @on-shadow-change="onShadowChange" ref="xAddress" raw-value></x-address>
+        <x-address title="所在地区" v-model="addressValue" :list="addressData" @on-shadow-change="onShadowChange" @on-hide="onHide" ref="xAddress" raw-value></x-address>
         <x-input title="详细地址" placeholder="请输入详细地址" v-model="detailAddress" required></x-input>
         <x-input title="楼层" placeholder="请输入楼层" v-model="floor" type="number" required>楼层</x-input>
         <x-switch title="电梯" @on-click="hasElevator" v-model="elevator"></x-switch>
@@ -66,10 +66,11 @@
         phone: '',
         userName: '',
         userId: '',
-        // openId: 'oxFVVv-WE38ZX29eKCWBCFYklfBE',
-        openId: '',
+        openId: 'oxFVVv-WE38ZX29eKCWBCFYklfBE',
+        // openId: '',
         addressId: '',
         cityId: '',
+        confirmSelectCityId: false,
         selectedAddress: '',
         selectedAddressArr: [],
         addressValue: [],
@@ -106,18 +107,22 @@
     mounted: function () {
       this.showLoading = true
       // 通过字符串截取获取openId
-      let openIdString = window.location.href
-      if (openIdString.indexOf('#/') > -1) {
-        this.openId = openIdString.split('?')[1].split('#/')[0].split('=')[1]
-      } else {
-        this.openId = openIdString.split('?')[1].split('=')[1]
-      }
+      // let openIdString = window.location.href
+      // if (openIdString.indexOf('#/') > -1) {
+      //   this.openId = openIdString.split('?')[1].split('#/')[0].split('=')[1]
+      // } else {
+      //   this.openId = openIdString.split('?')[1].split('=')[1]
+      // }
       if (this.openId) {
         this.getAddressList(this.openId)
       }
     },
     watch: {
       cityId: function (newCityId) {
+        if (!this.confirmSelectCityId) { // 未关闭选择地址框
+          return
+        }
+        console.log('新的城市id为：' + newCityId)
         this.companyList = []
         this.companyData = []
         this.companyValue = ''
@@ -129,6 +134,7 @@
         this.shopId = ''
         this.shopOrgCode = ''
         this.getGasCompany(newCityId)
+        this.confirmSelectCityId = false
       },
       companyId: function (newCompanyId) {
         if (newCompanyId === '') {
@@ -175,6 +181,9 @@
         this.cityId = ids[1].substring(0, 4)
         this.selectedAddressArr = names
         this.selectedAddress = names.join('')
+      },
+      onHide (bol) {
+        this.confirmSelectCityId = bol
       },
       hasElevator (newVal, oldVal) {
         setTimeout(() => {

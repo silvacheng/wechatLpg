@@ -1,6 +1,6 @@
 var path = require('path')
 var utils = require('./utils')
-
+var webpack = require('webpack')
 var projectRoot = path.resolve(__dirname, '../')
 const vuxLoader = require('vux-loader')
 
@@ -32,6 +32,12 @@ let webpackConfig = {
       '@': resolve('src')
     }
   },
+  plugins: [
+    new webpack.ProvidePlugin({
+      $: 'jquery',
+      _: 'lodash'
+    })
+  ],
   module: {
     rules: [
       {

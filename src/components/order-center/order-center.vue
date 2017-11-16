@@ -36,11 +36,11 @@
                       <span>{{good.gasTypeName}}</span>
                     </div>
                     <div class="right-middle">
-                      <span v-show="good.freight&&Number(good.freight)!==0">送气费{{good.freight/100}}元&nbsp;/&nbsp;瓶</span>
+                      <span v-show="good.freight&&Number(good.freight)!==0">送气费{{good.freight}}元&nbsp;/&nbsp;瓶</span>
                       <span class="right" v-show="address.elevator==='0'||address.haveElevator===0">楼层费1.00元&nbsp;/&nbsp;层</span>
                     </div>
                     <div class="right-bottom">
-                      <div class="price">￥{{good.bottlePrice/100}}</div>
+                      <div class="price">￥{{good.bottlePrice}}</div>
                       <div>x {{good.amount}}</div>
                     </div>
                   </div>

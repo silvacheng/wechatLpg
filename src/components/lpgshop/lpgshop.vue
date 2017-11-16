@@ -5,7 +5,7 @@
         <h3>
           <div class="select-address" @click="changeAddress">
             <i class="iconfont left">&#xe60d;</i>
-            <span class="current-address">{{address.userAddress||address.detailAddress}}</span>
+            <span class="current-address">{{address.detailAddress}}</span>
             <i class="iconfont right">&#xe601;</i>
           </div>
         </h3>
@@ -81,8 +81,6 @@
         this.$router.push('/orderCenter')
       },
       changeAddress () {
-        // this.showLoading = true
-        // this.loadingText = '正在跳转..'
         this.$router.push('/addressManage')
       }
     },
