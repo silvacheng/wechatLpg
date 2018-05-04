@@ -8,23 +8,24 @@ import store from './store'
 import App from './App'
 import _ from 'lodash'
 import $ from 'jquery'
-import { AjaxPlugin } from 'vux'
+import { AjaxPlugin, cookie } from 'vux'
 
 Vue.use(AjaxPlugin, VueRouter, _, $)
 Object.defineProperty(Vue.prototype, '$', {value: $})
 Object.defineProperty(Vue.prototype, '_', {value: _})
-// console.log(window.navigator.userAgent)
-// router.beforeEach((to, from, next) => {
-//   if (cookie.get('openId')) {
-//     if (to.path === '/') {
-//       next({path: '/lpgShop'})
-//     } else {
-//       next()
-//     }
-//   } else {
-//     next()
-//   }
-// })
+router.beforeEach((to, from, next) => {
+  // console.log(to)
+  // console.log(from)
+  if (cookie.get('openId')) {
+    if (to.path === '/') {
+      next({path: '/lpgShop'})
+    } else {
+      next()
+    }
+  } else {
+    next()
+  }
+})
 FastClick.attach(document.body)
 Vue.config.productionTip = false
 // 配置请求头

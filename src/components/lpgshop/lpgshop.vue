@@ -5,7 +5,7 @@
         <h3>
           <div class="select-address" @click="changeAddress">
             <i class="iconfont left">&#xe60d;</i>
-            <span class="current-address">{{address.detailAddress}}</span>
+            <span class="current-address">{{address.detailAddress||address.userAddress}}</span>
             <i class="iconfont right">&#xe601;</i>
           </div>
         </h3>
@@ -56,8 +56,10 @@
       }
       this.$http.post(getGasListUrl, JSON.stringify(data)).then((res) => {
         // console.log(res.data.data)
-        if (res.data.status === '1') {
+        if (res.data.status === '1' && res.data.data.length > 0) {
           this.goods = res.data.data
+          this.showLoading = false
+        } else {
           this.showLoading = false
         }
       })
@@ -101,20 +103,20 @@
     background-color #38d164
     color #fff
     position relative
-    .select-address 
-      display inline-block 
+    .select-address
+      display inline-block
       padding 0 20px
-      max-width 200px 
+      max-width 200px
       text-overflow ellipsis
       white-space nowrap
       overflow hidden
-      position relative 
-      .iconfont 
+      position relative
+      .iconfont
         position absolute
-        &.left 
-          left 0px 
-        &.right 
-          right 0px  
+        &.left
+          left 0px
+        &.right
+          right 0px
     .center
       position absolute
       right 10px
@@ -129,14 +131,14 @@
       padding 10px 0 10px 10px
       background-color #eee
       display flex
-      span 
-        height 20px 
+      span
+        height 20px
         line-height 20px
         margin-left 6px
         font-size 14px
         display inline-block
     ul
-      margin-bottom 48px  
+      margin-bottom 48px
       .good
         padding 15px 10px
         font-size 0

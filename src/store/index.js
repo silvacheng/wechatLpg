@@ -13,6 +13,6 @@ export default new Vuex.Store({
   getters,
   state,
   mutations,
-  strict: debug,
-  plugins: debug ? [createLogger()] : []
+  // strict: debug,
+  plugins: debug ? [createLogger()] : [] // 生产环境无debugger
 })

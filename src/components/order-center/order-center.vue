@@ -13,8 +13,8 @@
       </tab>
       <div class="content">
         <ul>
-          <li class="order" 
-          v-for="(order, index) in totalOrder" 
+          <li class="order"
+          v-for="(order, index) in totalOrder"
           v-show="selectOrderState==='all'||order.orderState===selectOrderState"
           >
             <div class="order-title">
@@ -40,7 +40,7 @@
                       <span class="right" v-show="address.elevator==='0'||address.haveElevator===0">楼层费1.00元&nbsp;/&nbsp;层</span>
                     </div>
                     <div class="right-bottom">
-                      <div class="price">￥{{good.bottlePrice}}</div>
+                      <div class="price">￥{{good.bottlePrice/100}}</div>
                       <div>x {{good.amount}}</div>
                     </div>
                   </div>
@@ -57,28 +57,26 @@
               <span @click="contractOrder(order)" v-show="(order.orderState==='3'||order.orderState==='2')&&order.deliverPhone">联系我们</span>
               <span @click="confirmOrder(order)" v-show="order.orderState==='3'">确认收货</span>
             </div>
-          </li>                   
+          </li>
         </ul>
           <div class="empty" v-show="showEmpty" ref="noneOrder">
             <div>
               <img src="../../common/image/no_order.png" alt="" width="64" height="80">
               <p>您还没有相关订单</p>
             </div>
-          </div>        
-      </div>
-      <div>
-        <confirm v-model="showConfirm"
-          :title="confirmTitle"
-          @on-cancel="onConfirmCancel"
-          @on-confirm="onConfirmSure">
-        </confirm>
+          </div>
       </div>
     </div>
+    <confirm v-model="showConfirm"
+               :title="confirmTitle"
+               @on-cancel="onConfirmCancel"
+               @on-confirm="onConfirmSure"></confirm>
+    <toast v-model="showToast" :text="toastText" type="text"></toast>
     <Loading class="loading" :text="loadingText" :show="showLoading"></Loading>
   </div>
 </template>
 <script type="text/ECMAScript-6">
-  import { Tab, TabItem, cookie, Loading, Confirm } from 'vux'
+  import { Tab, TabItem, cookie, Loading, Confirm, Toast } from 'vux'
   import { getGasOrderUrl, updateGasOrderUrl } from '../../api/config'
   import { mapMutations } from 'vuex'
   export default {
@@ -86,7 +84,9 @@
       return {
         totalOrder: [],
         loadingText: '加载订单列表中..',
+        toastText: '',
         showLoading: false,
+        showToast: false,
         address: JSON.parse(cookie.get('defaultAddress')),
         confirmTitle: '',
         showConfirm: false,
@@ -221,38 +221,15 @@
           orderCode: order.orderCode,
           cancelReason: order.receivePerson
         }
-        let _this = this
+        // let _this = this
         if (this.confirmTitle === '确定删除此订单？') { // 删除订单
           data.isDel = 2
-          this.$http.post(updateGasOrderUrl, JSON.stringify(data)).then((res) => {
-            console.log(res.data)
-            // 清除操作的订单
-            _this.currentOperateOrder = {}
-            if (res.data.status === '1') {
-              _this.getOrderList()
-            }
-          })
         } else if (this.confirmTitle === '确定取消此订单？') { // 取消订单
           data.orderState = 6 // 发送要改变的状态
-          this.$http.post(updateGasOrderUrl, JSON.stringify(data)).then((res) => {
-            console.log(res.data)
-            // 清除操作的订单
-            _this.currentOperateOrder = {}
-            if (res.data.status === '1') {
-              _this.getOrderList()
-            }
-          })
         } else if (this.confirmTitle === '确认收货吗？') { // 确认收货
           data.orderState = 4 // 发送要改变的状态
-          this.$http.post(updateGasOrderUrl, JSON.stringify(data)).then((res) => {
-            console.log(res.data)
-            // 清除操作的订单
-            _this.currentOperateOrder = {}
-            if (res.data.status === '1') {
-              _this.getOrderList()
-            }
-          })
         }
+        this._getUpdateOrder(data)
         // 清除confirmTitle
         this.confirmTitle = ''
       },
@@ -270,6 +247,19 @@
           window.location.href = 'tel://' + phone
         }
       },
+      _getUpdateOrder (data) {
+        data = JSON.stringify(data)
+        this.$http.post(updateGasOrderUrl, data).then((res) => {
+          // console.log(res.data)
+          this.currentOperateOrder = {}
+          if (res.data.status === '1') {
+            this.getOrderList()
+          } else {
+            this.showToast = true
+            this.toastText = res.data.msg
+          }
+        })
+      },
       ...mapMutations({
         orderDetail: 'SET_ORDER_DETAIL'
       })
@@ -278,7 +268,8 @@
       Tab,
       TabItem,
       Loading,
-      Confirm
+      Confirm,
+      Toast
     }
   }
 </script>
@@ -304,7 +295,7 @@
     .order
       margin-top 10px
       background-color #fff
-      padding 0 15px      
+      padding 0 15px
       .order-title
         display flex
         justify-content space-between
@@ -313,40 +304,40 @@
         line-height 30px
         font-size 14px
         border-bottom 1px solid #e1e1e1
-        .status 
+        .status
           color #38d164
       .good-wrapper
         padding 10px 15px
         border-bottom 1px solid #e1e1e1
         font-size 12px
         color #6a6a6a
-        .good-item 
+        .good-item
           display flex
           margin-bottom 10px
           &:last-child
             margin-bottom 0
-          .left 
+          .left
             flex 0 0 45px
-            display flex 
-            align-items center              
-          .right 
-            flex 1 
+            display flex
+            align-items center
+          .right
+            flex 1
             .right-top
-              span 
+              span
                 font-size 14px
                 color #6a6a6a
                 font-weight bold
-            .right-middle 
+            .right-middle
               margin-top 8px
-              span 
+              span
                 color #a4a4a4
-                &.right 
+                &.right
                   margin-left 20px
-            .right-bottom 
-              margin-top 8px 
-              display flex 
+            .right-bottom
+              margin-top 8px
+              display flex
               justify-content space-between
-              font-size 14px              
+              font-size 14px
               .price
                 color #f50000
                 font-weight bold
@@ -357,7 +348,7 @@
         padding 11px 15px
         font-size 14px
         border-bottom 1px solid #e1e1e1
-        .time 
+        .time
           color #a4a4a4
         .total
           background-color #fff
@@ -367,22 +358,22 @@
         background-color #fff
         padding 8px
         text-align right
-        span 
+        span
           font-size 14px
           padding 6px
           border 1px solid #a4a4a4
           border-radius 5px
           margin-right 2px
-          display inline-block 
+          display inline-block
     .empty
       margin-top 10px
       background-color #ffffff
       text-align center
-      img 
+      img
         margin-top 200px
-      p 
+      p
         margin-top 30px
         color #6a6a6a
-      
+
 
 </style>

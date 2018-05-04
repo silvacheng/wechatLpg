@@ -104,7 +104,7 @@
         if (this.address.elevator === '1' || this.address.haveElevator === 1) {
           return total
         }
-        let floor = Number(this.address.floorLevel) - 1
+        let floor = this.address.floorLevel ? Number(this.address.floorLevel) - 1 : Number(this.address.floor) - 1
         // console.log('需要计算楼层费的层数为：' + floor)
         this.selectGoods.forEach((good) => {
           total += floor * good.amount
@@ -170,7 +170,7 @@
             goodArr.weightPrice = goodArr.weightPrice * 100
           }
           let selectFoodStr = JSON.stringify(goodArr)
-          console.log(goodArr)
+          // console.log(goodArr)
           let gasCost = this.totalGasPrice * 100
           let deliverCost = this.totalFreightPrice * 100
           let floorCost = this.totalFloorPrice * 100
@@ -184,7 +184,7 @@
             // alert('当前时间戳为：' + currentTimeStamp)
             // alert('选择的预约时间戳为：' + this.selectAppointmentTimeStamp)
             let deltaStamp = this.selectAppointmentTimeStamp - currentTimeStamp
-            console.log('相差时间戳为：' + deltaStamp)
+            // console.log('相差时间戳为：' + deltaStamp)
             let deltaCount = 30 * 60 * 1000
             if (Number(deltaStamp) >= deltaCount) { // 半个小时后
               this.selectAppointmentTime = dateFormat(new Date(this.selectAppointmentTimeStamp), 'YYYY-MM-DD HH:mm:ss')
@@ -224,10 +224,10 @@
             'integralConsume': 0, // 抵扣积分
             'integralMoney': 0 // 积分抵扣金额
           }
-          console.log(data)
+          // console.log(data)
           this.showLoading = true
           this.$http.post(postGasOrderUrl, JSON.stringify(data)).then((res) => {
-            console.log(res.data)
+            // console.log(res.data)
             this.showLoading = false
             if (res.data.status === '1') {
               this.$router.push('/orderCenter')

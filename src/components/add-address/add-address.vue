@@ -5,30 +5,30 @@
     </div>
     <div class="content">
       <group class="content-wrapper" label-width="6em" label-align="left">
-        <x-input title="姓名" name="userName" placeholder="请输入姓名" is-type="china-name" v-model="userName" required></x-input>        
-        <x-input 
-          title="联系方式" 
-          name="mobile" 
-          placeholder="请输入手机号码" 
-          keyboard="number" 
-          is-type="china-mobile" 
-          :max="11" 
-          v-model="phone" 
-          @on-blur="checkUser"  
-          @on-change="hiddenVerify" 
+        <x-input title="姓名" name="userName" placeholder="请输入姓名" is-type="china-name" v-model="userName" required></x-input>
+        <x-input
+          title="联系方式"
+          name="mobile"
+          placeholder="请输入手机号码"
+          keyboard="number"
+          is-type="china-mobile"
+          :max="11"
+          v-model="phone"
+          @on-blur="checkUser"
+          @on-change="hiddenVerify"
           required>
         </x-input>
-        <x-input 
-          v-show="showAuthcode" 
-          title="图形验证码" 
-          placeholder="请输入右侧数字" 
-          keyboard="number"  
+        <x-input
+          v-show="showAuthcode"
+          title="图形验证码"
+          placeholder="请输入右侧数字"
+          keyboard="number"
           v-model="imgRandCode"
           @on-change="getSmsCode"
-          type="number" 
+          type="number"
           :max="4"
-          required 
-        ></x-input>        
+          required
+        ></x-input>
         <x-button v-show="needVerifyCode" :type="verifyCodeType" class="verifyCode" mini @click.native="getVerifyCode">{{deadLine}}</x-button>
         <div class="authcode" v-show="showAuthcode" @click="getAuthCode">
           <img :src="imgRandSrc" style="max-width:100%">
@@ -119,9 +119,9 @@
     },
     watch: {
       cityId: function (newCityId) {
-        if (!this.confirmSelectCityId) { // 未关闭选择地址框
-          return
-        }
+        // if (!this.confirmSelectCityId) { // 未关闭选择地址框
+        //   return
+        // }
         console.log('新的城市id为：' + newCityId)
         this.companyList = []
         this.companyData = []
@@ -134,7 +134,7 @@
         this.shopId = ''
         this.shopOrgCode = ''
         this.getGasCompany(newCityId)
-        this.confirmSelectCityId = false
+        // this.confirmSelectCityId = false
       },
       companyId: function (newCompanyId) {
         if (newCompanyId === '') {
@@ -196,6 +196,7 @@
         }, 300)
       },
       getLocationByBaiduMap (point) {
+        console.log(point)
         let _this = this
         let geoc = new BMap.Geocoder()
         geoc.getLocation(point, function (res) {
@@ -289,6 +290,11 @@
       },
       submit () {
         let MOBILE_REG = /^1[34578]\d{9}$/g
+        if (this.userName === '') {
+          this.alertConent = '请输入姓名'
+          this.showAlert = true
+          return
+        }
         if (this.phone === '') {
           this.alertConent = '请输入联系方式'
           this.showAlert = true
@@ -576,25 +582,25 @@
       .content-wrapper
         margin-top -21px
         position relative
-        .verifyCode 
+        .verifyCode
           position absolute
           right 15px
           top 96px
           z-index 99
-        .authcode 
-          position absolute 
-          right 15px 
+        .authcode
+          position absolute
+          right 15px
           top 97px
-          display flex 
+          display flex
           align-items center
-          span  
+          span
             color skyblue
     .company
       margin-top 10px
       padding 0 5px
       background-color #fff
       border 1px solid #eee
-      .popup-radio 
+      .popup-radio
         padding 15px
     .default
       margin-top 10px
